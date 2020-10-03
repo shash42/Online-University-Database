@@ -8,7 +8,7 @@ CREATE TABLE `USER` (
   `FName` varchar(255) NOT NULL,
   `MName` varchar(255),
   `SName` varchar(255),
-  `DOB` datetime NOT NULL,
+  `DOB` date NOT NULL,
   `Email` varchar(255) NOT NULL,
   -- `UContribution` double DEFAULT 0,
   PRIMARY KEY (`UserName`, `DNum`)
