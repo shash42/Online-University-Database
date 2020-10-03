@@ -1,43 +1,46 @@
 DROP DATABASE IF EXISTS `UNIVERSITY`;
 CREATE DATABASE UNIVERSITY;
 USE UNIVERSITY;
+
 CREATE TABLE `USER` (
   `UserName` varchar(255),
   `DNum` int,
-  `FName` varchar(255),
+  `FName` varchar(255) NOT NULL,
   `MName` varchar(255),
   `SName` varchar(255),
-  `DOB` TimeStamp,
-  `Email` varchar(255),
-  `UContribution` float,
+  `DOB` datetime NOT NULL,
+  `Email` varchar(255) NOT NULL,
+  -- `UContribution` double DEFAULT 0,
   PRIMARY KEY (`UserName`, `DNum`)
 );
 
 CREATE TABLE `SUBJECT` (
-  `SubName` varchar(255) PRIMARY KEY,
-  `NumCourse` int,
-  `SPopularity` int
+  `SubName` varchar(255) PRIMARY KEY
+  -- `NumCourse` int DEFAULT 0,
+  -- `SPopularity` int DEFAULT 0
 );
 
 CREATE TABLE `LANGUAGE` (
   `LangCode` char(3) PRIMARY KEY,
-  `LangName` varchar(255)
+  `LangName` varchar(255) UNIQUE NOT NULL
 );
 
 CREATE TABLE `KNOWS` (
   `UserName` varchar(255),
   `DNum` int,
   `LangCode` char(3),
-  `Fluency` varchar(255),
-  PRIMARY KEY (`UserName`, `DNum`, `LangCode`)
+  `Fluency` varchar(255) NOT NULL,
+  PRIMARY KEY (`UserName`, `DNum`, `LangCode`),
+  CONSTRAINT CHK_Fluency CHECK (`Fluency` IN ("Elementary" ,"Limited Working" , "Professional Working" ,"Native") )
 );
 
 CREATE TABLE `HAS_INTEREST_IN` (
   `UserName` varchar(255),
   `DNum` int,
   `SubName` varchar(255),
-  `InterestType` varchar(255),
-  PRIMARY KEY (`UserName`, `DNum`, `SubName`)
+  `InterestType` varchar(255) NOT NULL,
+  PRIMARY KEY (`UserName`, `DNum`, `SubName`),
+  CONSTRAINT CHK_InterestType CHECK (`InterestType` IN ("Research" ,"Professional" , "Major" ,"Minor" ,"Casual") )
 );
 
 CREATE TABLE `FRIENDS_WITH` (
@@ -45,14 +48,14 @@ CREATE TABLE `FRIENDS_WITH` (
   `Friend1DNum` int,
   `Friend2Name` varchar(255),
   `Friend2DNum` int,
-  `TimeStamp` TimeStamp,
-  `NumStudyGroups` int,
-  `NumCommonCourses` int,
+  `TimeStamp` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  -- `NumStudyGroups` int DEFAULT 0,
+  -- `NumCommonCourses` int DEFAULT 0,
   PRIMARY KEY (`Friend1Name`, `Friend1DNum`, `Friend2Name`, `Friend2DNum`)
 );
 
 CREATE TABLE `COURSE` (
-  `CourseID` int PRIMARY KEY,
+  `CourseID` int PRIMARY KEY AUTO_INCREMENT,
   `CourseName` varchar(255),
   `CourseOrg` varchar(255),
   `CoursePlatform` varchar(255),
@@ -144,7 +147,7 @@ CREATE TABLE `SG_EVENT` (
 CREATE TABLE `MEET` (
   `SgUrl` varchar(255),
   `EventNum` int,
-  `MeetTime` TimeStamp,
+  `MeetTime` datetime,
   `MeetDuration` int,
   PRIMARY KEY (`SgUrl`, `EventNum`)
 );
@@ -180,9 +183,17 @@ CREATE TABLE `PARTICIPATES_IN` (
   CONSTRAINT check_sgstatus CHECK (`SgStatus` IN ("Completed", "Active", "Planned"))
 );
 
-ALTER TABLE `KNOWS` ADD FOREIGN KEY (`LangCode`) REFERENCES `LANGUAGE` (`LangCode`);
+ALTER TABLE `KNOWS` 
+  ADD CONSTRAINT knows_fk 
+  FOREIGN KEY (`LangCode`) REFERENCES `LANGUAGE` (`LangCode`)
+  ON DELETE CASCADE
+  ON UPDATE CASCADE;
 
-ALTER TABLE `HAS_INTEREST_IN` ADD FOREIGN KEY (`SubName`) REFERENCES `SUBJECT` (`SubName`);
+ALTER TABLE `HAS_INTEREST_IN` 
+  ADD CONSTRAINT interest_fk
+  FOREIGN KEY (`SubName`) REFERENCES `SUBJECT` (`SubName`)
+  ON DELETE CASCADE
+  ON UPDATE CASCADE;
 
 ALTER TABLE `COURSE` 
   ADD CONSTRAINT course_difficulty_fk
@@ -190,7 +201,11 @@ ALTER TABLE `COURSE`
   ON DELETE SET NULL
   ON UPDATE CASCADE;
 
-ALTER TABLE `COURSE_INSTRUCTOR` ADD FOREIGN KEY (`CourseID`) REFERENCES `COURSE` (`CourseID`);
+ALTER TABLE `COURSE_INSTRUCTOR`
+  ADD CONSTRAINT courseinstructor_fk
+  FOREIGN KEY (`CourseID`) REFERENCES `COURSE` (`CourseID`)
+  ON DELETE CASCADE
+  ON UPDATE CASCADE;
 
 ALTER TABLE `CONTAINS` 
   ADD CONSTRAINT contains_courseid_fk
@@ -222,7 +237,11 @@ ALTER TABLE `PREREQUISITE`
   ON DELETE CASCADE
   ON UPDATE CASCADE;
 
-ALTER TABLE `BLOGTAG` ADD FOREIGN KEY (`UserName`, `DNum`, `PostNumber`) REFERENCES `POST` (`UserName`, `DNum`, `PostNumber`);
+ALTER TABLE `BLOGTAG` 
+  ADD CONSTRAINT blogtag_fk 
+  FOREIGN KEY (`UserName`, `DNum`, `PostNumber`) REFERENCES `POST` (`UserName`, `DNum`, `PostNumber`);
+  ON DELETE CASCADE
+  ON UPDATE CASCADE;
 
 ALTER TABLE `POST` 
   ADD CONSTRAINT post_courseid_fk
@@ -272,13 +291,29 @@ ALTER TABLE `PARTICIPATES_IN`
   ON DELETE CASCADE
   ON UPDATE CASCADE;
 
-ALTER TABLE `KNOWS` ADD FOREIGN KEY (`UserName`, `DNum`) REFERENCES `USER` (`UserName`, `DNum`);
+ALTER TABLE `KNOWS` 
+  ADD CONSTRAINT knows_user_fk
+  FOREIGN KEY (`UserName`, `DNum`) REFERENCES `USER` (`UserName`, `DNum`)
+  ON DELETE CASCADE
+  ON UPDATE CASCADE;
 
-ALTER TABLE `HAS_INTEREST_IN` ADD FOREIGN KEY (`UserName`, `DNum`) REFERENCES `USER` (`UserName`, `DNum`);
+ALTER TABLE `HAS_INTEREST_IN` 
+  ADD CONSTRAINT interest_user_fk
+  FOREIGN KEY (`UserName`, `DNum`) REFERENCES `USER` (`UserName`, `DNum`)
+  ON DELETE CASCADE
+  ON UPDATE CASCADE;
 
-ALTER TABLE `FRIENDS_WITH` ADD FOREIGN KEY (`Friend1Name`, `Friend1DNum`) REFERENCES `USER` (`UserName`, `DNum`);
+ALTER TABLE `FRIENDS_WITH` 
+  ADD CONSTRAINT friend1_fk
+  FOREIGN KEY (`Friend1Name`, `Friend1DNum`) REFERENCES `USER` (`UserName`, `DNum`)
+  ON DELETE CASCADE
+  ON UPDATE CASCADE;
 
-ALTER TABLE `FRIENDS_WITH` ADD FOREIGN KEY (`Friend2Name`, `Friend2DNum`) REFERENCES `USER` (`UserName`, `DNum`);
+ALTER TABLE `FRIENDS_WITH` 
+  ADD CONSTRAINT friend2_fk
+  FOREIGN KEY (`Friend2Name`, `Friend2DNum`) REFERENCES `USER` (`UserName`, `DNum`)
+  ON DELETE CASCADE
+  ON UPDATE CASCADE;
 
 ALTER TABLE `POST`
   ADD CONSTRAINT post_madeby_fk
