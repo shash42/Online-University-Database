@@ -69,6 +69,7 @@ CREATE TABLE `COURSE_DIFFICULTY` (
   `CourseOrg` varchar(255),
   `CourseDifficulty` varchar(255),
   `CoursePlatform` varchar(255),
+  CONSTRAINT check_difficulty CHECK(`CourseDifficulty` IN ("Beginner", "Intermediate", "Expert")),
   PRIMARY KEY (`CourseName`, `CourseOrg`, `CoursePlatform`)
 );
 
