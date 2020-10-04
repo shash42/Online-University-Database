@@ -50,17 +50,20 @@ class Session:
     def user_screen(self):
         while True:
             print("1. BEFRIEND")
-            print("2. UPDATE STUDENT INTEREST")
-            print("3. SHOW SUBJECTS")
-            print("4. EXIT")
+            print("2. Manage Study Group")
+            print("3. UPDATE STUDENT INTEREST")
+            print("4. SHOW SUBJECTS")
+            print("5. EXIT")
             choice = input()
             if(choice == "1"):
-                self.add_languageKnown()
-            elif(choice == '2'):
-                self.update_interest()
+                self.befriend()
+            elif(choice == "2"):
+                self.manage_studygroup()
             elif(choice == '3'):
+                self.update_interest()
+            elif(choice == '4'):
                 self.show_subject()
-            elif(choice == "4"):
+            elif(choice == "5"):
                 break
             else:
                 print("Invalid choice")
@@ -68,8 +71,8 @@ class Session:
     def login(self):
         try:
             UName = input('UserName: ')
-            DNumber = int(input('DNumber'))
-            Pass = input('Password')
+            DNumber = int(input('DNumber: '))
+            Pass = input('Password: ')
             query = "SELECT Password from `USER` where UserName = '%s' AND DNum = %d" % (UName,DNumber)
             self.cursor.execute(query)
             resultset = self.cursor.fetchone()
@@ -87,6 +90,7 @@ class Session:
         except Exception as e:
             print(e)
         return   
+
     def signup(self):
         self.add_user()
     
@@ -114,8 +118,10 @@ class Session:
                 break
             else:
                 print("Invalid option") 
+    
     def add_entry_screen(self):
         return
+    
     def see_available(self):
         return
 
@@ -130,16 +136,145 @@ class Session:
     
     def enroll(self):
         return
-    def unenroll(self):
+
+
+    def unenroll(self): # This would be a deletion from the quarternary relationship
         return
-    def join_studygroup(self):
+
+    def manage_studygroup(self):
+        # [TODO:] Display list of study groups user is part of here.
+        sg_url = input("Enter URL of Study Group: ")
+        # [TODO:] Check if the study group exists
+        # [TODO:] If user does not have manage access, return
+        while(True):
+            selection = 0
+            print("1. Add pinned information")
+            print("2. Add an event")
+            print("3. Add a course")
+            print("4. Add a language")
+            print("5. Exit")
+            selection = print("Choose one of the above options: ")
+            if(selection == "1"):
+                self.create_pin(sg_url)
+            elif(selection == "2"):
+                self.create_event(sg_url)
+            elif(selection == "3"):
+                print("Not implemented") # [TODO]
+            elif(selection == "4"):
+                print("Not implemented") # [TODO]
+            elif(selection == "5"):
+                return
+            else:
+                print("Invalid choice. Please try again!")
+
         return
+    
     def create_studygroup(self):
+        try:
+            attributes = {
+                "StudyGroup URL" : "",
+            }
+            for attribute in attributes:
+                    while(attributes[attribute]==""):
+                        attributes[attribute] = input(attribute+": ")
+                                  
+            query = "INSERT INTO `STUDY_GROUP` (SgUrl) VALUES ('%s')" % (attributes["SgUrl"])
+            self.cursor.execute(query)
+            self.connection.commit()
+        
+        except Exception as e:
+            print(e)
+            self.ask_user_action(self.create_studygroup)
+    
+    def create_meet(self, sg_url, event_num):
+        try:
+            attrM = {
+                "Meet Time YYYY/MM/DD HH/MI/SS" : "",
+                "Meet Duration (mins)" : ""
+            }
+            for attribute in attrM:
+                while(attrM[attribute]==""):
+                    attrM[attribute] = input(attribute+": ")
+                
+            query = "INSERT INTO `MEET` (SgUrl, EventNum, MeetTime, MeetDuration) VALUES ('%s' '%s' '%s' '%s')" % (sg_url, event_num, attrM["Meet Time YYYY/MM/DD HH/MI/SS"], attrM["Meet Duration (mins)"])
+            self.cursor.execute(query)
+            self.connection.commit()
+            print("Added Event Succesfully!")
+
+        except Exception as e:
+            print(e)
+            self.ask_user_action(self.create_meet)
+        
         return
-    def create_event(self):
+
+    def create_target(self, sg_url, event_num):
+        try:
+            attrT = {
+                "Deadline YYYY/MM/DD HH/MI/SS" : "",
+            }
+            for attribute in attrT:
+                while(attrT[attribute]==""):
+                    attrT[attribute] = input(attribute+": ")
+                
+            query = "INSERT INTO `TARGET` (TargetDeadline) VALUES ('%s', '%s', '%s')" % (sg_url, event_num, attrT["Deadline YYYY/MM/DD HH/MI/SS"])
+            self.cursor.execute(query)
+            self.connection.commit()
+            print("Added Event Succesfully!")
+
+        except Exception as e:
+            print(e)
+            self.ask_user_action(self.create_target)
+        
         return
-    def pin_event(self):
+    
+    def create_event(self, sg_url):
+        try:
+            attrE = {
+                "Event Number" : "", # [TODO:] This has to be computed using SgUrl
+                "Event Title" : "",
+                "Event Info." : ""
+            }
+            for attribute in attrE:
+                    while(attrE[attribute]==""):
+                        attrE[attribute] = input(attribute+": ")
+            
+            query = "INSERT INTO `SG_EVENT` (SgUrl, EventNum, EventTitle, EventInfo) VALUES ('%s' '%s' '%s' '%s')" % (sg_url, attrE["Event Number"], attrE["Event Title"], attrE["Event Info."])
+            self.cursor.execute(query)
+
+        except Exception as e:
+            print(e)
+            self.ask_user_action(self.create_event)
+
+        else:
+            selection = 0
+            while(selection!="1" and selection!="2"):
+                print("Enter 1 for Meet and 2 for Target: ")
+                selection = input()
+            
+            if(selection=="1"):
+                self.create_meet(attrE["StudyGroup URL"], attrE["Event Number"])
+            elif(selection=="2"):
+                self.create_target(attrE["StudyGroup URL"], attrE["Event Number"])
+    
         return
+    
+    def create_pin(self, sg_url):
+        try:
+            attrP = {
+                "Pinned Info." : "",
+            }
+            for attribute in attrP:
+                    while(attrP[attribute]==""):
+                        attrP[attribute] = input(attribute+": ")
+            
+            query = "INSERT INTO `PINS` (SgUrl, PinDetails) VALUES ('%s' '%s')" % (sg_url, attrP["Pinned Info."])
+            self.cursor.execute(query)
+
+        except Exception as e:
+            print(e)
+            self.ask_user_action(self.create_pin)    
+    
+    
     def make_post(self):
         try:
             username = input("Username: ") # [TODO:] Replace with logged in username
