@@ -1,8 +1,10 @@
 from datetime import datetime
+import os
 import pymysql.cursors 
 
 class Session:
     def __init__(self):
+
         self.connection = pymysql.connect(host='127.0.0.1',
                              user='root',
                              password='blahblah',
@@ -34,6 +36,7 @@ class Session:
     def user_screen(self):
         return
     def admin_screen(self):
+        os.system('clear')
         print("Hello!")
         print("1. Add User")
         print("2. Add Course")
@@ -108,20 +111,69 @@ class Session:
     # Admin Actions
     def add_user(self):
         try:
-            username = input("Username: ")
-            dnum = int(input("DNum: "))
-            fname = input("First Name: ")
+            os.system('clear')
+            print("ADD NEW USER")
+            username = input("Username*: ")
+            dnum = int(input("DNum*: "))
+            fname = input("First Name*: ")
             mname = input("Middle Name: ")
-            lname = input("Last Name: ")
-            dob = datetime.strptime(input("Date of Birth: "), "%d-%m-%Y")
-            email = input("Email: ")
-            sql = "INSERT INTO `USER` "
+            if(mname == ""):
+                mname = None
+            lname = input("Last Name*: ")
+            dob = datetime.strptime(input("Date of Birth (DD-MM-YYYY)*: "), "%d-%m-%Y")
+            email = input("Email*: ")
+            sql = "INSERT INTO `USER` values ('%s', '%s', '%s', '%s', '%s', '%s', '%s');"
+            self.cursor.execute(sql, (username, str(dnum), fname, mname, lname, dob.strftime("%Y%m%d"), email))
+            self.connection.commit()
         except:
-            print("Hmm")
+            print("Oops, you entered something wrong or missed something")
+            while(True):
+                print("1. Retry")
+                print("2. Exit")
+                choice = input()
+                if(choice == "1"):
+                    self.add_user()
+                elif(choice == "2"):
+                    return
+                else:
+                    print("Invalid choice")
     def get_dnum(self, username):
         return
     def add_course(self):
-        return
+        # try:
+        os.system("clear")
+        print("ADD NEW COURSE")
+        attributes = {"Course Name: ":"", 
+                    "Course Org: ":"", 
+                    "Course Platform: ":"",
+                    "Weekly Course Hours: ":"",
+                    "Course Duration: ":""
+                }
+        coursedifficulty=""
+        for attribute in attributes:
+            while(attributes[attribute]==""):
+                attributes[attribute] = input(attribute)
+        while(coursedifficulty not in ["Beginner", "Intermediate", "Expert"]):
+            coursedifficulty = input("Course Difficulty [Beginner/Intermediate/Expert]: ")
+
+        sql_difficulty = "INSERT INTO `COURSE_DIFFICULTY` (`CourseName`, `CourseOrg`, `CoursePlatform`, `CourseDifficulty`) values (%s, %s, %s, %s);"
+        sql_course = "INSERT INTO `COURSE` (`CourseName`, `CourseOrg`, `CoursePlatform`, `CourseHours`, `CourseDuration`) values (%s, %s, %s, %s, %s);"
+
+        self.cursor.execute(sql_difficulty, tuple(attributes.values())[:3]+(coursedifficulty,))
+        self.cursor.execute(sql_course, tuple(attributes.values()))
+        self.connection.commit()
+        # except:
+        #     print("You entered something wrong or missed something")
+        #     while(True):
+        #         print("1. Retry")
+        #         print("2. Exit")
+        #         choice = input()
+        #         if(choice == "1"):
+        #             self.add_course()
+        #         elif(choice == "2"):
+        #             return
+        #         else:
+        #             print("Invalid choice")
     def add_subject(self):
         return
     def add_language(self):
