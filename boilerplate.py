@@ -4,9 +4,9 @@ import pymysql.cursors
 
 class Session:
     def __init__(self):
-        self.connection = pymysql.connect(host='localhost',
-                             user='daa',
-                             password='adrcrony69',
+        self.connection = pymysql.connect(host='127.0.0.1',
+                             user='root',
+                             password='blahblah',
                              db='UNIVERSITY',
                              charset='utf8mb4',
                              port = 5005,
@@ -15,6 +15,21 @@ class Session:
         self.logged_in = False
         self.role = None
     
+    def ask_user_action(self, fun_name):
+        print("Oops, you entered something wrong or missed something")
+        while(True):
+            print("1. Retry")
+            print("2. Exit")
+            choice = input()
+            if(choice == "1"):
+                fun_name()
+                break
+            elif(choice == "2"):
+                return
+            else:
+                print("Invalid choice")
+        return
+
     def login_screen(self):
         print("Hello!")
         print("1. Login")
@@ -97,7 +112,8 @@ class Session:
             self.connection.commit()
 
         except Exception as e:
-            print(e.args[1])
+            print(e)
+            self.ask_user_action(self.make_post)
 
         return
             
