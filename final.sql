@@ -10,6 +10,7 @@ CREATE TABLE `USER` (
   `SName` varchar(255),
   `DOB` date NOT NULL,
   `Email` varchar(255) NOT NULL,
+  `Password` varchar(255) NOT NULL,
   -- `UContribution` double DEFAULT 0,
   PRIMARY KEY (`UserName`, `DNum`)
 );
