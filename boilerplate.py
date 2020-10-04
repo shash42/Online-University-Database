@@ -4,9 +4,9 @@ import pymysql.cursors
 
 class Session:
     def __init__(self):
-        self.connection = pymysql.connect(host='localhost',
+        self.connection = pymysql.connect(host='127.0.0.1',
                              user='root',
-                             password='prince',
+                             password='blahblah',
                              db='UNIVERSITY',
                              charset='utf8mb4',
                              port = 5005,
@@ -16,6 +16,21 @@ class Session:
         self.role = None
         self.current_user=None
     
+    def ask_user_action(self, fun_name):
+        print("Oops, you entered something wrong or missed something")
+        while(True):
+            print("1. Retry")
+            print("2. Exit")
+            choice = input()
+            if(choice == "1"):
+                fun_name()
+                break
+            elif(choice == "2"):
+                return
+            else:
+                print("Invalid choice")
+        return
+
     def login_screen(self):
         print("Hello!")
         while True:
@@ -113,7 +128,37 @@ class Session:
     def pin_event(self):
         return
     def make_post(self):
+        try:
+            username = input("Username: ")
+            dnum = input("DNum: ")
+            post_number = input("PNo.: ")   # [TODO:] Generate post_number based on no. of posts made by the username+dnum
+            post_title = input("Post title: ")
+            post_content = input("Post content: ")
+            post_type = ""
+            while(post_type!="Review" and post_type!="Blog"):
+                post_type = input("Type [Review/Blog]: ")
+            sql = "INSERT INTO `POST` "
+            
+            if(post_type == "Review"):
+                post_courseid = input("CourseID: ")
+                post_rating = input("Rate the course [1-10]: ")
+                sql += "(`UserName`, `DNum`, `PostNumber`, `PostTitle`, `PostContent`, "
+                sql += "`Type`, `CourseID`, `ReviewRating`) "
+                sql += "VALUES ( %s, %s, %s, %s, %s, %s, %s, %s );"
+                self.cursor.execute(sql, (username, dnum, post_number, post_title, post_content, post_type, post_courseid, post_rating))
+            else:
+                sql += "(`UserName`, `DNum`, `PostNumber`, `PostTitle`, `PostContent`, `Type`) "
+                sql += "VALUES ( %s, %s, %s, %s, %s, %s );"
+                self.cursor.execute(sql, (username, dnum, post_number, post_title, post_content, post_type))
+            self.connection.commit()
+
+        except Exception as e:
+            print(e)
+            self.ask_user_action(self.make_post)
+
         return
+            
+
     def befriend(self):
         try:
             attributes = {
