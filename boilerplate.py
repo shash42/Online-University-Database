@@ -129,8 +129,8 @@ class Session:
         return
     def make_post(self):
         try:
-            username = input("Username: ")
-            dnum = input("DNum: ")
+            username = input("Username: ") # [TODO:] Replace with logged in username
+            dnum = input("DNum: ") # [TODO:] Replace with logged in Dnum
             post_number = input("PNo.: ")   # [TODO:] Generate post_number based on no. of posts made by the username+dnum
             post_title = input("Post title: ")
             post_content = input("Post content: ")
@@ -177,8 +177,8 @@ class Session:
             query = "INSERT INTO `FRIENDS_WITH` (Friend1Name,Friend1DNum,Friend2Name,Friend2DNum) VALUES ('%s',%d,'%s',%d)" % (attributes["Friend2Name"],attributes["Friend2DNum"],self.current_user[0],self.current_user[1])
             self.cursor.execute(query)
             self.connection.commit()
-        except Exception as e:
-            
+        
+        except Exception as e:    
             print(e)
             self.ask_user_action(self.befriend)
         
@@ -217,40 +217,33 @@ class Session:
     def get_dnum(self, username):
         return
     def add_course(self):
-        # try:
-        os.system("clear")
-        print("ADD NEW COURSE")
-        attributes = {"Course Name: ":"", 
-                    "Course Org: ":"", 
-                    "Course Platform: ":"",
-                    "Weekly Course Hours: ":"",
-                    "Course Duration: ":""
-                }
-        coursedifficulty=""
-        for attribute in attributes:
-            while(attributes[attribute]==""):
-                attributes[attribute] = input(attribute)
-        while(coursedifficulty not in ["Beginner", "Intermediate", "Expert"]):
-            coursedifficulty = input("Course Difficulty [Beginner/Intermediate/Expert]: ")
+        try:
+            os.system("clear")
+            print("ADD NEW COURSE")
+            attributes = {"Course Name: ":"", 
+                        "Course Org: ":"", 
+                        "Course Platform: ":"",
+                        "Weekly Course Hours: ":"",
+                        "Course Duration: ":""
+                    }
+            coursedifficulty=""
+            for attribute in attributes:
+                while(attributes[attribute]==""):
+                    attributes[attribute] = input(attribute)
+            while(coursedifficulty not in ["Beginner", "Intermediate", "Expert"]):
+                coursedifficulty = input("Course Difficulty [Beginner/Intermediate/Expert]: ")
 
-        sql_difficulty = "INSERT INTO `COURSE_DIFFICULTY` (`CourseName`, `CourseOrg`, `CoursePlatform`, `CourseDifficulty`) values (%s, %s, %s, %s);"
-        sql_course = "INSERT INTO `COURSE` (`CourseName`, `CourseOrg`, `CoursePlatform`, `CourseHours`, `CourseDuration`) values (%s, %s, %s, %s, %s);"
+            sql_difficulty = "INSERT INTO `COURSE_DIFFICULTY` (`CourseName`, `CourseOrg`, `CoursePlatform`, `CourseDifficulty`) values (%s, %s, %s, %s);"
+            sql_course = "INSERT INTO `COURSE` (`CourseName`, `CourseOrg`, `CoursePlatform`, `CourseHours`, `CourseDuration`) values (%s, %s, %s, %s, %s);"
 
-        self.cursor.execute(sql_difficulty, tuple(attributes.values())[:3]+(coursedifficulty,))
-        self.cursor.execute(sql_course, tuple(attributes.values()))
-        self.connection.commit()
-        # except:
-        #     print("You entered something wrong or missed something")
-        #     while(True):
-        #         print("1. Retry")
-        #         print("2. Exit")
-        #         choice = input()
-        #         if(choice == "1"):
-        #             self.add_course()
-        #         elif(choice == "2"):
-        #             return
-        #         else:
-        #             print("Invalid choice")
+            self.cursor.execute(sql_difficulty, tuple(attributes.values())[:3]+(coursedifficulty,))
+            self.cursor.execute(sql_course, tuple(attributes.values()))
+            self.connection.commit()
+        except Exception as e:
+            print(e)
+            self.ask_user_action(self.add_course)
+
+
     def add_subject(self):
         try:
             print('ADDING SUBJECT')
@@ -268,8 +261,8 @@ class Session:
         except Exception as e:
             print(e)
             self.ask_user_action(self.add_subject)
-
-
+        
+        return
         
     def add_language(self):
         try:
@@ -293,21 +286,10 @@ class Session:
         except Exception as e:
             print(e)
             self.ask_user_action(self.add_language)
+    
     def add_prerequisite(self):
         return 
-    def ask_user_action(self,fun_name):
-        print("Oops, you entered something wrong or missed something")
-        while(True):
-                print("1. Retry")
-                print("2. Exit")
-                choice = input()
-                if(choice == "1"):
-                    fun_name()
-                    break
-                elif(choice == "2"):
-                    return
-                else:
-                    print("Invalid choice")
+    
     def main_screen(self):
         print("WELCOME TO OPEN SOURCE UNIVERSITY")
         print("1. ADMIN")
