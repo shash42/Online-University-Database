@@ -103,13 +103,14 @@ CREATE TABLE `PREREQUISITE` (
 CREATE TABLE `POST` (
   `UserName` varchar(255),
   `DNum` int,
-  `TimeStamp` TimeStamp,
+  `TimeStamp` TimeStamp DEFAULT CURRENT_TIMESTAMP,
   `PostNumber` varchar(255),
   `PostTitle` varchar(255),
   `PostContent` varchar(255),
-  `Type` varchar(255),
+  `Type` varchar(255) NOT NULL,
   `ReviewRating` int,
-  CONSTRAINT check_rating CHECK ((`ReviewRating` >= 0 AND `ReviewRating` <= 10)), 
+  CONSTRAINT check_rating CHECK ((`ReviewRating` >= 0 AND `ReviewRating` <= 10)),
+  CONSTRAINT check_posttype CHECK(`Type` IN ("Review", "Blog")),
   `CourseID` int,
   PRIMARY KEY (`UserName`, `DNum`, `PostNumber`)
 );
@@ -139,9 +140,7 @@ CREATE TABLE `SG_EVENT` (
   `EventNum` int NOT NULL,
   `EventTitle` varchar(255) DEFAULT "No Title",
   `EventInfo` varchar(255) DEFAULT "No Information",
-  `Type` varchar(255) NOT NULL DEFAULT "MEET",
-  PRIMARY KEY (`SgUrl`, `EventNum`),
-  CONSTRAINT check_type CHECK (`Type` IN ("MEET", "TARGET"))
+  PRIMARY KEY (`SgUrl`, `EventNum`)
 );
 
 CREATE TABLE `MEET` (
