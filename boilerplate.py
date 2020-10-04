@@ -8,6 +8,7 @@ class Session:
                              password='password',
                              db='UNIVERSITY',
                              charset='utf8mb4',
+                             port = 5005,
                              cursorclass=pymysql.cursors.DictCursor)
         self.cursor = self.connection.cursor()
         self.logged_in = False
@@ -105,5 +106,5 @@ def main():
         session.admin_screen()
 
 if(__name__ == "__main__"):
-    print("changes")
+    
     main()

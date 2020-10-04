@@ -239,7 +239,7 @@ ALTER TABLE `PREREQUISITE`
 
 ALTER TABLE `BLOGTAG` 
   ADD CONSTRAINT blogtag_fk 
-  FOREIGN KEY (`UserName`, `DNum`, `PostNumber`) REFERENCES `POST` (`UserName`, `DNum`, `PostNumber`);
+  FOREIGN KEY (`UserName`, `DNum`, `PostNumber`) REFERENCES `POST` (`UserName`, `DNum`, `PostNumber`)
   ON DELETE CASCADE
   ON UPDATE CASCADE;
 
