@@ -217,7 +217,7 @@ class Session:
             os.system('clear')
             print("ADD NEW USER")
             username = input("Username*: ")
-            dnum = int(input("DNum*: "))
+            dnum = self.get_number(username,"USER","UserName")
             fname = input("First Name*: ")
             mname = input("Middle Name: ")
             if(mname == ""):
@@ -229,7 +229,7 @@ class Session:
             sql = "INSERT INTO `USER` values ('%s',%d, '%s', '%s', '%s', '%s', '%s','%s');" % (username,dnum,fname,mname,lname,dob,email,password)
             print(sql)
             self.cursor.execute(sql)
-            self.connection.commit()
+            
             numberOfLanguagesKnown = 0
             while(numberOfLanguagesKnown <= 0):
                 numberOfLanguagesKnown = int(input("Enter Number of languages known[atleast one]: "))
@@ -240,14 +240,18 @@ class Session:
                 numberOfSubjectInterest = int(input("Enter Number of Subject Interest[atleast one]: "))
             for _ in range(numberOfSubjectInterest):
                 self.add_subjectInterest(username,dnum)
-
+            self.connection.commit()
 
         except Exception as e:
             print(e)
             self.ask_user_action(self.add_user)
-    def get_dnum(self, username):
+    def get_number(self, username,tablename,columnname):
+        query = "SELECT COUNT(*) FROM `%s` WHERE %s='%s'"%(tablename,columnname,username)
+        print(query)
+        self.cursor.execute(query)
+        resultset = self.cursor.fetchone()
         
-        return
+        return resultset['COUNT(*)']
     def add_course(self):
         try:
             os.system("clear")
@@ -306,7 +310,7 @@ class Session:
                     InterestType = ""
             query = "INSERT INTO `HAS_INTEREST_IN` VALUES ('%s',%d,'%s','%s')" %(username,dnum,SubName,InterestType)
             self.cursor.execute(query)
-            self.connection.commit()
+            
         except Exception as e:
             print(e)
             print("Try again")
@@ -327,7 +331,7 @@ class Session:
             query = "INSERT INTO `KNOWS` VALUES ('%s',%d,'%s','%s')" %(username,dnum,LangCode,Fluency)
             print(query)
             self.cursor.execute(query)
-            self.connection.commit()
+            
         except Exception as e:
             print(e)
             print("Try again")
@@ -383,6 +387,7 @@ def main():
     while(True):
         if(session.main_screen() == 0):
             break
+    
 
 if(__name__ == "__main__"):
     
