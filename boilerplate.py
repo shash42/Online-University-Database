@@ -134,7 +134,7 @@ class Session:
             print(r)
 
     
-    def enroll(self):
+    def enroll(self): # This would be a insertion into the quarternary relationship along with a call to create_studygroup if reqd.
         return
 
 
@@ -277,27 +277,36 @@ class Session:
     
     def make_post(self):
         try:
-            username = input("Username: ") # [TODO:] Replace with logged in username
-            dnum = input("DNum: ") # [TODO:] Replace with logged in Dnum
-            post_number = input("PNo.: ")   # [TODO:] Generate post_number based on no. of posts made by the username+dnum
-            post_title = input("Post title: ")
-            post_content = input("Post content: ")
+            attrP = {
+                "Post Number" : "", # [TODO:] Generate post_number based on no. of posts made by the username+dnum
+                "Post Title" : "",
+                "Post content" : ""
+            }
+            for attribute in attrP:
+                    while(attrP[attribute]==""):
+                        attrP[attribute] = input(attribute+": ")
+            
             post_type = ""
             while(post_type!="Review" and post_type!="Blog"):
                 post_type = input("Type [Review/Blog]: ")
             sql = "INSERT INTO `POST` "
             
             if(post_type == "Review"):
-                post_courseid = input("CourseID: ")
-                post_rating = input("Rate the course [1-10]: ")
+                attrR = {
+                    "CourseID" : "",
+                    "Rate course [1-10]" : ""
+                }
+                for attribute in attrR:
+                    while(attrR[attribute]==""):
+                        attrR[attribute] = input(attribute+": ")
                 sql += "(`UserName`, `DNum`, `PostNumber`, `PostTitle`, `PostContent`, "
-                sql += "`Type`, `CourseID`, `ReviewRating`) "
-                sql += "VALUES ( %s, %s, %s, %s, %s, %s, %s, %s );"
-                self.cursor.execute(sql, (username, dnum, post_number, post_title, post_content, post_type, post_courseid, post_rating))
+                sql += "`Type`, `CourseID`, `ReviewRating`) VALUES ( %s, %s, %s, %s, %s, %s, %s, %s );"
+                self.cursor.execute(sql, (self.current_user[0], self.current_user[1], attrP["Post Number"], attrP["Post Title"],
+                                    attrP["Post Content"], attrP["Post Type"], attrR["CourseID"], attrR["Rate course [1-10]"]))
             else:
-                sql += "(`UserName`, `DNum`, `PostNumber`, `PostTitle`, `PostContent`, `Type`) "
-                sql += "VALUES ( %s, %s, %s, %s, %s, %s );"
-                self.cursor.execute(sql, (username, dnum, post_number, post_title, post_content, post_type))
+                sql += "(`UserName`, `DNum`, `PostNumber`, `PostTitle`, `PostContent`, `Type`) VALUES ( %s, %s, %s, %s, %s, %s );"
+                self.cursor.execute(sql, (self.current_user[0], self.current_user[1], attrP["Post Number"], attrP["Post Title"],
+                                    attrP["Post Content"], attrP["Post Type"]))
             self.connection.commit()
 
         except Exception as e:
@@ -329,7 +338,8 @@ class Session:
         except Exception as e:    
             print(e)
             self.ask_user_action(self.befriend)
-        
+
+
     def update_interest(self):
         try:
             SubName = ""
@@ -346,6 +356,8 @@ class Session:
         except Exception as e:    
             print(e)
             self.ask_user_action(self.update_interest)
+
+
     # Admin Actions
     def add_user(self):
         try:
@@ -380,6 +392,9 @@ class Session:
         except Exception as e:
             print(e)
             self.ask_user_action(self.add_user)
+        return
+
+
     def get_number(self, username,tablename,columnname):
         query = "SELECT COUNT(*) FROM `%s` WHERE %s='%s'"%(tablename,columnname,username)
         print(query)
@@ -387,6 +402,8 @@ class Session:
         resultset = self.cursor.fetchone()
         
         return resultset['COUNT(*)']
+
+
     def add_course(self):
         try:
             os.system("clear")
@@ -410,6 +427,7 @@ class Session:
             self.cursor.execute(sql_difficulty, tuple(attributes.values())[:3]+(coursedifficulty,))
             self.cursor.execute(sql_course, tuple(attributes.values()))
             self.connection.commit()
+
         except Exception as e:
             print(e)
             self.ask_user_action(self.add_course)
@@ -449,7 +467,7 @@ class Session:
         except Exception as e:
             print(e)
             print("Try again")
-            self.add_languageKnown()
+            self.add_languageKnown(self.current_user[0], self.current_user[1])
 
     def add_languageKnown(self,username,dnum):
         try:
@@ -470,7 +488,10 @@ class Session:
         except Exception as e:
             print(e)
             print("Try again")
-            self.add_languageKnown()
+            self.add_languageKnown(self.current_user[0], self.current_user[1])
+
+        return
+
     def add_language(self):
         try:
             print("ADDING LANGUAGE")
@@ -484,12 +505,13 @@ class Session:
                     attributes[attribute] = input(attribute+": ")
                     if attribute == 'LangCode':
                         while(len(attributes[attribute]) != 3):
-                            print("LangCode should be of 3 character")
+                            print("LangCode should be of 3 characters")
                             attributes[attribute] = input(attribute+": ")
             
             query = "INSERT INTO `LANGUAGE` VALUES ('%s','%s')" % (attributes['LangCode'],attributes['LangName'])
             self.cursor.execute(query)
             self.connection.commit()
+
         except Exception as e:
             print(e)
             self.ask_user_action(self.add_language)
