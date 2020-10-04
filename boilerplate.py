@@ -4,13 +4,12 @@ import pymysql.cursors
 
 class Session:
     def __init__(self):
-        self.connection = pymysql.connect(host='127.0.0.1',
-                             user='root',
-                             password='blahblah',
-                             db='UNIVERSITY',
-                             charset='utf8mb4',
-                             port = 5005,
-                             cursorclass=pymysql.cursors.DictCursor)
+        self.connection = pymysql.connect(host='localhost',
+                              user="root",
+                              password="prince",
+                              db='UNIVERSITY',
+                              port=5005,
+                              cursorclass=pymysql.cursors.DictCursor)
         self.cursor = self.connection.cursor()
         self.logged_in = False
         self.role = None
@@ -51,11 +50,17 @@ class Session:
     def user_screen(self):
         while True:
             print("1. BEFRIEND")
-            print("2. EXIT")
+            print("2. UPDATE STUDENT INTEREST")
+            print("3. SHOW SUBJECTS")
+            print("4. EXIT")
             choice = input()
             if(choice == "1"):
-                self.befriend()
-            elif(choice == "2"):
+                self.add_languageKnown()
+            elif(choice == '2'):
+                self.update_interest()
+            elif(choice == '3'):
+                self.show_subject()
+            elif(choice == "4"):
                 break
             else:
                 print("Invalid choice")
@@ -115,6 +120,14 @@ class Session:
         return
 
     # User Actions
+    def show_subject(self):
+        query= 'SELECT * FROM SUBJECT'
+        self.cursor.execute(query)
+        resultset = self.cursor.fetchall()
+        for r in resultset:
+            print(r)
+
+    
     def enroll(self):
         return
     def unenroll(self):
@@ -183,8 +196,21 @@ class Session:
             self.ask_user_action(self.befriend)
         
     def update_interest(self):
-        return
-
+        try:
+            SubName = ""
+            while(SubName == ""):
+                SubName = input("Subject Name: ")
+            InterestType = ""
+            while(InterestType == ""):
+                InterestType = input('Modified Interest Type["Research" ,"Professional" , "Major" ,"Minor" ,"Casual"]: ')
+                if InterestType not in ["Research" ,"Professional" , "Major" ,"Minor" ,"Casual"]:
+                    InterestType = ""
+            query = "UPDATE `HAS_INTEREST_IN` SET InterestType = '%s' WHERE UserName = '%s' and DNum = %d and SubName = '%s'" %(InterestType,self.current_user[0],self.current_user[1],SubName)
+            self.cursor.execute(query)
+            self.connection.commit()
+        except Exception as e:    
+            print(e)
+            self.ask_user_action(self.update_interest)
     # Admin Actions
     def add_user(self):
         try:
@@ -197,24 +223,30 @@ class Session:
             if(mname == ""):
                 mname = None
             lname = input("Last Name*: ")
-            dob = datetime.strptime(input("Date of Birth (DD-MM-YYYY)*: "), "%d-%m-%Y")
+            dob = input("Date of Birth (YYYY-MM-DD))*: ")
             email = input("Email*: ")
-            sql = "INSERT INTO `USER` values ('%s', '%s', '%s', '%s', '%s', '%s', '%s');"
-            self.cursor.execute(sql, (username, str(dnum), fname, mname, lname, dob.strftime("%Y%m%d"), email))
+            password = input("Password*: ")
+            sql = "INSERT INTO `USER` values ('%s',%d, '%s', '%s', '%s', '%s', '%s','%s');" % (username,dnum,fname,mname,lname,dob,email,password)
+            print(sql)
+            self.cursor.execute(sql)
             self.connection.commit()
-        except:
-            print("Oops, you entered something wrong or missed something")
-            while(True):
-                print("1. Retry")
-                print("2. Exit")
-                choice = input()
-                if(choice == "1"):
-                    self.add_user()
-                elif(choice == "2"):
-                    return
-                else:
-                    print("Invalid choice")
+            numberOfLanguagesKnown = 0
+            while(numberOfLanguagesKnown <= 0):
+                numberOfLanguagesKnown = int(input("Enter Number of languages known[atleast one]: "))
+            for _ in range(numberOfLanguagesKnown):
+                self.add_languageKnown(username,dnum)
+            numberOfSubjectInterest = 0
+            while numberOfSubjectInterest <= 0:
+                numberOfSubjectInterest = int(input("Enter Number of Subject Interest[atleast one]: "))
+            for _ in range(numberOfSubjectInterest):
+                self.add_subjectInterest(username,dnum)
+
+
+        except Exception as e:
+            print(e)
+            self.ask_user_action(self.add_user)
     def get_dnum(self, username):
+        
         return
     def add_course(self):
         try:
@@ -262,8 +294,44 @@ class Session:
             print(e)
             self.ask_user_action(self.add_subject)
         
-        return
-        
+    def add_subjectInterest(self,username,dnum):
+        try:
+            SubName = ""
+            while(SubName == ""):
+                SubName = input("Subject Name: ")
+            InterestType = ""
+            while(InterestType == ""):
+                InterestType = input('Interest Type["Research" ,"Professional" , "Major" ,"Minor" ,"Casual"]: ')
+                if InterestType not in ["Research" ,"Professional" , "Major" ,"Minor" ,"Casual"]:
+                    InterestType = ""
+            query = "INSERT INTO `HAS_INTEREST_IN` VALUES ('%s',%d,'%s','%s')" %(username,dnum,SubName,InterestType)
+            self.cursor.execute(query)
+            self.connection.commit()
+        except Exception as e:
+            print(e)
+            print("Try again")
+            self.add_languageKnown()
+
+    def add_languageKnown(self,username,dnum):
+        try:
+            LangCode = ""
+            while(LangCode == ""):
+                LangCode = input("Language Code[3 characters]: ")
+                if(len(LangCode) != 3):
+                    LangCode = ""
+            Fluency = ""
+            while(Fluency == ""):
+                Fluency = input('Fluency["Elementary" ,"Limited Working" , "Professional Working" ,"Native"]: ')
+                if Fluency not in ["Elementary" ,"Limited Working" , "Professional Working" ,"Native"]:
+                    Fluency = ""
+            query = "INSERT INTO `KNOWS` VALUES ('%s',%d,'%s','%s')" %(username,dnum,LangCode,Fluency)
+            print(query)
+            self.cursor.execute(query)
+            self.connection.commit()
+        except Exception as e:
+            print(e)
+            print("Try again")
+            self.add_languageKnown()
     def add_language(self):
         try:
             print("ADDING LANGUAGE")
