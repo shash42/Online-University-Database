@@ -134,7 +134,7 @@ CREATE TABLE `STUDY_GROUP` (
 
 CREATE TABLE `PINS` (
   `SgUrl` varchar(255) PRIMARY KEY,
-  `PinDetails` varchar(255) DEFAULT ""
+  `PinDetails` varchar(1000) DEFAULT ""
 );
 
 CREATE TABLE `SG_EVENT` (
