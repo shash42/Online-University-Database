@@ -69,6 +69,7 @@ CREATE TABLE `COURSE_DIFFICULTY` (
   `CourseOrg` varchar(255),
   `CourseDifficulty` varchar(255),
   `CoursePlatform` varchar(255),
+  CONSTRAINT check_difficulty CHECK(`CourseDifficulty` IN ("Beginner", "Intermediate", "Expert")),
   PRIMARY KEY (`CourseName`, `CourseOrg`, `CoursePlatform`)
 );
 
@@ -239,7 +240,7 @@ ALTER TABLE `PREREQUISITE`
 
 ALTER TABLE `BLOGTAG` 
   ADD CONSTRAINT blogtag_fk 
-  FOREIGN KEY (`UserName`, `DNum`, `PostNumber`) REFERENCES `POST` (`UserName`, `DNum`, `PostNumber`);
+  FOREIGN KEY (`UserName`, `DNum`, `PostNumber`) REFERENCES `POST` (`UserName`, `DNum`, `PostNumber`)
   ON DELETE CASCADE
   ON UPDATE CASCADE;
 
