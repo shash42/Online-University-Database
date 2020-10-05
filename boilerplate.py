@@ -97,7 +97,7 @@ class Session:
     
     def admin_screen(self):
         os.system('clear')
-        print("Hello!")
+        print("Hello Admin!")
         while True:
             print("1. Add User")
             print("2. Add Course")
