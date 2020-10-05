@@ -128,7 +128,9 @@ CREATE TABLE `BLOGTAG` (
 CREATE TABLE `STUDY_GROUP` (
   `SgUrl` varchar(255) PRIMARY KEY,
   `SgCreated` TimeStamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `SgUpdated` TimeStamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `SgUpdated` TimeStamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `SgStatus` varchar(255) NOT NULL DEFAULT "Planned",
+  CONSTRAINT check_sgstatus CHECK (`SgStatus` IN ("Completed", "Active", "Planned")),
   CONSTRAINT check_sgdatesanity CHECK (`SgCreated` <= `SgUpdated`) -- AND `SgUpdated` <= CURRENT_TIMESTAP gives syntax error
 );
 
@@ -174,14 +176,12 @@ CREATE TABLE `PARTICIPATES_IN` (
   `UserPerformance` float NOT NULL DEFAULT 0,
   `UserNumHours` int NOT NULL DEFAULT 0,
   `UserProgress` float NOT NULL DEFAULT 0,
-  `SgStatus` varchar(255) NOT NULL DEFAULT "Planned",
   PRIMARY KEY (`SgUrl`, `UserName`, `DNum`, `LangCode`, `CourseID`),
   CONSTRAINT check_sgrole CHECK (`UserSgRole` IN ("Member", "Admin")),
   CONSTRAINT check_sgcontrib CHECK (`UserSgContrib` >= 0 AND `UserSgContrib` <= 10),
   CONSTRAINT check_sgrating CHECK (`UserSgRating` >= 0 AND `UserSgRating` <= 10),
   CONSTRAINT check_performance CHECK (`UserPerformance` >= 0 AND `UserPerformance` <= 100),
-  CONSTRAINT check_progress CHECK (`UserProgress` >= 0 AND `UserProgress` <= 100),
-  CONSTRAINT check_sgstatus CHECK (`SgStatus` IN ("Completed", "Active", "Planned"))
+  CONSTRAINT check_progress CHECK (`UserProgress` >= 0 AND `UserProgress` <= 100)
 );
 
 ALTER TABLE `KNOWS` 

@@ -7,6 +7,7 @@ class Admin:
         return
 
     def add_user(self):
+        #[TODO:] Input validation
         try:
             os.system('clear')
             print("ADD NEW USER")
@@ -20,8 +21,8 @@ class Admin:
             dob = input("Date of Birth (YYYY-MM-DD))*: ")
             email = input("Email*: ")
             password = input("Password*: ")
-            sql = "INSERT INTO `USER` values ('%s',%d, '%s', '%s', '%s', '%s', '%s','%s');" % (username,dnum,fname,mname,lname,dob,email,password)
-            print(sql)
+            sql = "INSERT INTO `USER` values ('%s', %d, '%s', '%s', '%s', '%s', '%s','%s');" % (username,dnum,fname,mname,lname,dob,email,password)
+            # print(sql)
             self.sesh.cursor.execute(sql)
             
             numberOfLanguagesKnown = 0
@@ -39,12 +40,16 @@ class Admin:
         except Exception as e:
             print(e)
             univutil.ask_user_action(self.add_user)
+
+        else:
+            print("Registered succesfully! Username: %s DNum: %d", username, dnum)
+
         return
 
 
     def get_number(self, username,tablename,columnname):
         query = "SELECT COUNT(*) FROM `%s` WHERE %s='%s'"%(tablename,columnname,username)
-        print(query)
+        #print(query)
         self.sesh.cursor.execute(query)
         resultset = self.sesh.cursor.fetchone()
         
