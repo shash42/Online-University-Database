@@ -40,17 +40,23 @@ class Session:
             print("2. Manage Study Group")
             print("3. UPDATE STUDENT INTEREST")
             print("4. SHOW SUBJECTS")
-            print("5. EXIT")
+            print("5. Create Post")
+            print("6. Delete Post")
+            print("9. EXIT")
             choice = input()
             if(choice == "1"):
                 self.user.befriend()
             elif(choice == "2"):
                 self.user.manage_studygroup()
-            elif(choice == '3'):
+            elif(choice == "3"):
                 self.user.update_interest()
-            elif(choice == '4'):
+            elif(choice == "4"):
                 self.user.show_subject()
             elif(choice == "5"):
+                self.user.make_post()
+            elif(choice == "6"):
+                self.user.delete_post()
+            elif(choice == "9"):
                 break
             else:
                 print("Invalid choice")
