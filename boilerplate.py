@@ -48,9 +48,9 @@ class Session:
                 self.user.befriend()
             elif(choice == "2"):
                 self.user.manage_studygroup()
-            elif(choice == '3'):
+            elif(choice == "3"):
                 self.user.update_interest()
-            elif(choice == '4'):
+            elif(choice == "4"):
                 self.user.show_subject()
             elif(choice == "5"):
                 self.user.show_friends_details()

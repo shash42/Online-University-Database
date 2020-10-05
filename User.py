@@ -172,6 +172,7 @@ class User:
             
             query = "INSERT INTO `SG_EVENT` (SgUrl, EventNum, EventTitle, EventInfo) VALUES ('%s' '%s' '%s' '%s')" % (sg_url, attrE["Event Number"], attrE["Event Title"], attrE["Event Info."])
             self.sesh.cursor.execute(query)
+            self.sesh.connection.commit()
 
         except Exception as e:
             print(e)
@@ -196,11 +197,12 @@ class User:
                 "Pinned Info." : "",
             }
             for attribute in attrP:
-                    while(attrP[attribute]==""):
-                        attrP[attribute] = input(attribute+": ")
+                while(attrP[attribute]==""):
+                    attrP[attribute] = input(attribute+": ")
             
             query = "INSERT INTO `PINS` (SgUrl, PinDetails) VALUES ('%s' '%s')" % (sg_url, attrP["Pinned Info."])
             self.sesh.cursor.execute(query)
+            self.sesh.connection.commit()
 
         except Exception as e:
             print(e)
@@ -217,8 +219,8 @@ class User:
                 "Post content" : ""
             }
             for attribute in attrP:
-                    while(attrP[attribute]==""):
-                        attrP[attribute] = input(attribute+": ")
+                while(attrP[attribute]==""):
+                    attrP[attribute] = input(attribute+": ")
             
             post_type = ""
             while(post_type!="Review" and post_type!="Blog"):
@@ -249,6 +251,27 @@ class User:
 
         return
             
+    
+    def delete_post(self):
+        try:
+            attrP = {
+                "Post Number" : ""
+            }
+            for attribute in attrP:
+                while(attrP[attribute]==""):
+                    attrP[attribute] = input(attribute+": ") #[TODO:] Validate if post actually exists
+            
+            sql = "DELETE FROM `POST` "
+            sql += "WHERE (UserName = '%s' AND DNum = '%s' AND PostNumber = '%s')" % (self.current_user[0], self.current_user[1], attrP["Post Number"])
+            self.sesh.cursor.execute(sql)
+            self.sesh.connection.commit()
+
+        except Exception as e:
+            print(e)
+            univutil.ask_user_action(self.make_post)
+
+        return
+        
 
     def befriend(self):
         try:
@@ -257,11 +280,11 @@ class User:
                 "Friend2DNum" : ""
             }
             for attribute in attributes:
-                    while(attributes[attribute]==""):
-                        if(attribute == 'Friend2DNum'):
-                            attributes[attribute] = int(input(attribute+": "))
-                        else:
-                            attributes[attribute] = input(attribute+": ")
+                while(attributes[attribute]==""):
+                    if(attribute == 'Friend2DNum'):
+                        attributes[attribute] = int(input(attribute+": "))
+                    else:
+                        attributes[attribute] = input(attribute+": ")
                         
                         
             
