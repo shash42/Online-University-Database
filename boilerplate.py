@@ -7,10 +7,12 @@ from Admin import Admin
 class Session:
     
     def __init__(self):
-        self.connection = pymysql.connect(host='localhost',
-                              user="daa",
-                              password="heck",
+        self.connection = pymysql.connect(host="127.0.0.1",
+                              user="root",
+                              password="blahblah",
                               db='UNIVERSITY',
+                              charset='utf8mb4',
+                              port = 5005,
                               cursorclass=pymysql.cursors.DictCursor)
         self.cursor = self.connection.cursor()
         self.user = User(self)
@@ -38,10 +40,11 @@ class Session:
         while True:
             print("1. BEFRIEND")
             print("2. Manage Study Group")
-            print("3. UPDATE STUDENT INTEREST")
-            print("4. SHOW SUBJECTS")
+            print("3. Interests Update")
+            print("4. Show subjects")
             print("5. Create Post")
             print("6. Delete Post")
+            print("7. Edit Post")
             print("9. EXIT")
             choice = input()
             if(choice == "1"):
@@ -56,6 +59,8 @@ class Session:
                 self.user.make_post()
             elif(choice == "6"):
                 self.user.delete_post()
+            elif(choice == "7"):
+                self.user.update_post()
             elif(choice == "9"):
                 break
             else:

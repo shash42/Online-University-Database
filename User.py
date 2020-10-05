@@ -35,7 +35,8 @@ class User:
             print("2. Add an event")
             print("3. Add a course")
             print("4. Add a language")
-            print("5. Exit")
+            print("5. Change status")
+            print("9. Exit")
             selection = print("Choose one of the above options: ")
             if(selection == "1"):
                 self.create_pin(sg_url)
@@ -46,6 +47,8 @@ class User:
             elif(selection == "4"):
                 print("Not implemented") # [TODO]
             elif(selection == "5"):
+                self.change_sgstatus(sg_url)
+            elif(selection == "9"):
                 return
             else:
                 print("Invalid choice. Please try again!")
@@ -161,13 +164,38 @@ class User:
     
         return
 
+    def change_sgstatus(self, sg_url):
+        try:
+            query = "SELECT 'SgStatus' from `STUDY_GROUP` WHERE 'SgUrl' = %s" % (sg_url)
+            self.sesh.cursor.execute(query)
+            result = self.sesh.cursor.fetchone()
+            status = result[0]
+            print("Current Status is: %s", status)
+            while(True):
+                status = input("Enter Status [Completed/Active/Planned]: ")
+                if(status == "Completed" or status == "Active" or status == "Planned"):
+                    break
+                else:
+                    print("Invalid input. Try again!")
+            update = "UPDATE `STUDY_GROUP` SET `SgStatus` = %s WHERE `SgUrl` = %s" % (status, sg_url)
+            self.sesh.cursor.execute(update)
+            self.sesh.connection.commit()
+        
+        except Exception as e:
+            print(e)
+            univutil.ask_user_action(self.change_sgstatus)
+        else:
+            print("Status updated successfully!")
+
+        return
+
 
     def make_post(self):
         try:
             attrP = {
                 "Post Number" : "", # [TODO:] Generate post_number based on no. of posts made by the username+dnum
                 "Post Title" : "",
-                "Post content" : ""
+                "Post Content" : ""
             }
             for attribute in attrP:
                 while(attrP[attribute]==""):
@@ -189,11 +217,11 @@ class User:
                 sql += "(`UserName`, `DNum`, `PostNumber`, `PostTitle`, `PostContent`, "
                 sql += "`Type`, `CourseID`, `ReviewRating`) VALUES ( %s, %s, %s, %s, %s, %s, %s, %s );"
                 self.sesh.cursor.execute(sql, (self.current_user[0], self.current_user[1], attrP["Post Number"], attrP["Post Title"],
-                                    attrP["Post Content"], attrP["Post Type"], attrR["CourseID"], attrR["Rate course [1-10]"]))
+                                    attrP["Post Content"], post_type, attrR["CourseID"], attrR["Rate course [1-10]"]))
             else:
                 sql += "(`UserName`, `DNum`, `PostNumber`, `PostTitle`, `PostContent`, `Type`) VALUES ( %s, %s, %s, %s, %s, %s );"
                 self.sesh.cursor.execute(sql, (self.current_user[0], self.current_user[1], attrP["Post Number"], attrP["Post Title"],
-                                    attrP["Post Content"], attrP["Post Type"]))
+                                    attrP["Post Content"], post_type))
             self.sesh.connection.commit()
 
         except Exception as e:
@@ -205,24 +233,80 @@ class User:
     
     def delete_post(self):
         try:
-            attrP = {
-                "Post Number" : ""
-            }
-            for attribute in attrP:
-                while(attrP[attribute]==""):
-                    attrP[attribute] = input(attribute+": ") #[TODO:] Validate if post actually exists
+            query = "SELECT `PostNumber`, `PostTitle`, `PostContent` FROM `POST` WHERE `UserName` = '%s' AND `DNum` = %d" % (self.current_user[0], self.current_user[1])
+            self.sesh.cursor.execute(query)
+            result = self.sesh.cursor.fetchall()
+            num_posts = self.sesh.cursor.rowcount
+            if(num_posts == 0):
+                print("Sorry, no posts exist to be deleted!")
+                return
+            print(num_posts, "posts currently exist!")
             
+            post_num = num_posts
+            while(post_num >= num_posts):
+                post_num = int(input("Enter the post number to delete (0-indexed): "))
+            
+            print("Are you sure you want to delete the following post: ")
+            print("Post Title: ", result[post_num]["PostTitle"])
+            print("Post Content: ", result[post_num]["PostContent"])
+            confirm = 'X'
+            while(confirm != 'Y' and confirm != 'N'):
+                confirm = input("I'm sure, delete [Y/N]: ")
+            if(confirm == 'N'):
+                return
+
             sql = "DELETE FROM `POST` "
-            sql += "WHERE (UserName = '%s' AND DNum = '%s' AND PostNumber = '%s')" % (self.current_user[0], self.current_user[1], attrP["Post Number"])
+            sql += "WHERE UserName = '%s' AND DNum = '%s' AND PostNumber = '%s'" % (self.current_user[0], self.current_user[1], post_num)
+            print(sql)
             self.sesh.cursor.execute(sql)
             self.sesh.connection.commit()
 
         except Exception as e:
             print(e)
-            univutil.ask_user_action(self.make_post)
+            univutil.ask_user_action(self.delete_post)
 
         return
+
+
+    def update_post(self):
+        try:
+            query = "SELECT `PostNumber`, `PostTitle`, `PostContent` FROM `POST` WHERE `UserName` = '%s' AND `DNum` = %d" % (self.current_user[0], self.current_user[1])
+            self.sesh.cursor.execute(query)
+            result = self.sesh.cursor.fetchall()
+            num_posts = self.sesh.cursor.rowcount
+            print(result)
+            if(num_posts == 0):
+                print("Sorry, no posts exist to be updated!")
+                return
+            print(num_posts, "posts currently exist!")
+            
+            post_num = num_posts
+            while(post_num >= num_posts):
+                post_num = int(input("Enter the post number (0-indexed): "))
+
+            print("Post Title: ", result[post_num]["PostTitle"])
+            print("Post Content: ", result[post_num]["PostContent"])
+            print("Now, please enter your edited post details")
+
+            attrP = {
+                "Post Title" : "",
+                "Post Content" : ""
+            }
+            for attribute in attrP:
+                while(attrP[attribute]==""):
+                    attrP[attribute] = input(attribute+": ")
+            attrP["Post Title"] += " [edited]"
+
+            update = "UPDATE `POST` SET `PostTitle` = %s, `PostContent` = %s WHERE `UserName` = %s AND `DNum` = '%s' AND `PostNumber` = '%s'"
+            self.sesh.cursor.execute(update, (attrP["Post Title"], attrP["Post Content"], self.current_user[0], self.current_user[1], post_num))
+            self.sesh.connection.commit()
+
+        except Exception as e:
+            print(e)
+            univutil.ask_user_action(self.update_post)
         
+        return
+            
 
     def befriend(self):
         try:
@@ -262,6 +346,7 @@ class User:
             query = "UPDATE `HAS_INTEREST_IN` SET InterestType = '%s' WHERE UserName = '%s' and DNum = %d and SubName = '%s'" %(InterestType,self.current_user[0],self.current_user[1],SubName)
             self.sesh.cursor.execute(query)
             self.sesh.connection.commit()
+
         except Exception as e:    
             print(e)
             univutil.ask_user_action(self.update_interest)
