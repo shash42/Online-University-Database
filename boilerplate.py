@@ -99,7 +99,6 @@ class Session:
         os.system('clear')
         print("Hello!")
         while True:
-            
             print("1. Add User")
             print("2. Add Course")
             print("3. Add Subject")
