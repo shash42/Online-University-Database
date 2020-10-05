@@ -46,6 +46,7 @@ class Session:
             print("6. Delete Post")
             print("7. Edit Post")
             print("9. EXIT")
+            print("8. Search friend details by name")
             choice = input()
             if(choice == "1"):
                 self.user.befriend()
@@ -61,6 +62,8 @@ class Session:
                 self.user.delete_post()
             elif(choice == "7"):
                 self.user.update_post()
+            elif(choice == "8"):
+                self.user.show_friends_details()
             elif(choice == "9"):
                 break
             else:
