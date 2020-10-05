@@ -38,15 +38,15 @@ class Session:
 
     def user_screen(self):
         while True:
-            print("1. BEFRIEND")
+            print("1. Befriend")
             print("2. Manage Study Group")
             print("3. Interests Update")
             print("4. Show subjects")
             print("5. Create Post")
             print("6. Delete Post")
             print("7. Edit Post")
-            print("9. EXIT")
             print("8. Search friend details by name")
+            print("9. EXIT")
             choice = input()
             if(choice == "1"):
                 self.user.befriend()
@@ -97,7 +97,7 @@ class Session:
     
     def admin_screen(self):
         os.system('clear')
-        print("Hello Admin!")
+        print("Hello!")
         while True:
             print("1. Add User")
             print("2. Add Course")
@@ -118,19 +118,16 @@ class Session:
                 break
             else:
                 print("Invalid option") 
-    
-    def add_entry_screen(self):
-        return
-    
+
     def see_available(self):
         return
     
 
     def main_screen(self):
         print("WELCOME TO OPEN SOURCE UNIVERSITY")
-        print("1. ADMIN")
-        print("2. USER")
-        print("3. EXIT")
+        print("1. Admin")
+        print("2. User")
+        print("3. Exit")
         choice = input()
         if(choice == "1"):
             self.admin_screen()
