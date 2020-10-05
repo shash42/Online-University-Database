@@ -5,10 +5,9 @@ import pymysql.cursors
 class Session:
     def __init__(self):
         self.connection = pymysql.connect(host='localhost',
-                              user="root",
-                              password="prince",
+                              user="daa",
+                              password="heck",
                               db='UNIVERSITY',
-                              port=5005,
                               cursorclass=pymysql.cursors.DictCursor)
         self.cursor = self.connection.cursor()
         self.logged_in = False
@@ -414,42 +413,94 @@ class Session:
                         "Weekly Course Hours: ":"",
                         "Course Duration: ":""
                     }
-            coursedifficulty=""
+            courseid_sql = "SELECT LAST_INSERT_ID();"
+            
+            coursedifficulty = ""
             for attribute in attributes:
                 while(attributes[attribute]==""):
                     attributes[attribute] = input(attribute)
             while(coursedifficulty not in ["Beginner", "Intermediate", "Expert"]):
                 coursedifficulty = input("Course Difficulty [Beginner/Intermediate/Expert]: ")
-
+            
             sql_difficulty = "INSERT INTO `COURSE_DIFFICULTY` (`CourseName`, `CourseOrg`, `CoursePlatform`, `CourseDifficulty`) values (%s, %s, %s, %s);"
             sql_course = "INSERT INTO `COURSE` (`CourseName`, `CourseOrg`, `CoursePlatform`, `CourseHours`, `CourseDuration`) values (%s, %s, %s, %s, %s);"
 
             self.cursor.execute(sql_difficulty, tuple(attributes.values())[:3]+(coursedifficulty,))
             self.cursor.execute(sql_course, tuple(attributes.values()))
-            self.connection.commit()
+            self.cursor.execute(courseid_sql)
+            courseid = self.cursor.fetchone()['LAST_INSERT_ID()']
 
+            while(True):
+                lang = ""
+                subdub = ""
+                while(lang==""):
+                    lang = input("Course Language: ")
+                while(subdub not in ["Native","Subs","Dubs"]):
+                    subdub = input("Language support [Native/Subs/Dubs]: ")
+                if(subdub == "Native"):
+                    subdub = None
+                sql_lang = "INSERT INTO `USED_FOR` values (%s, %s, %s)"
+                self.cursor.execute(sql_lang, (lang, courseid, subdub))
+                cont = input("More languages? [y/n]: ")
+                if(cont == "n"):
+                    break
+            
+            while(True):
+                subject = ""
+                while(subject == ""):
+                    subject = input("Select the subject the course belongs to: ")
+                sql_sub = "INSERT INTO `CONTAINS` values(%s, %s)"
+                self.cursor.execute(sql_sub, (subject, courseid))
+                cont = input("More subjects? [y/n]: ")
+                if(cont == "n"):
+                    break
+
+            instructor = input("Add course instructor? [y/n]: ")
+            while(instructor == "y"):
+                courseinstructor = ""
+                while(courseinstructor == ""):
+                    courseinstructor = input("Instructor Name: ")
+                sql_instructor = "INSERT INTO `COURSE_INSTRUCTOR` values (%s, %s)"
+                self.cursor.execute(sql_instructor, (courseinstructor, courseid))
+                if(input("More instructors? [y/n]: ") == "n"):
+                    break
+            
+            prereq = input("Add course prerequisites? [y/n]: ")
+            while(prereq == "y"):
+                courseprerequisite = "" 
+                courseprerequisite_importance = ""
+                while(courseprerequisite==""):
+                    courseprerequisite = input("Prequisite course ID: ")
+                while(courseprerequisite_importance not in ["Helpful", "Essential"]):
+                    courseprerequisite_importance = input("Prequisite importance [Helpful/Essential]: ")
+                sql_instructor = "INSERT INTO `PREREQUISITE` values (%s, %s, %s)"
+                self.cursor.execute(sql_instructor, (courseid, courseprerequisite, courseprerequisite_importance))
+                if(input("More preqrequisites? [y/n]: ") == "n"):
+                    break
+            
+            self.connection.commit()
         except Exception as e:
             print(e)
             self.ask_user_action(self.add_course)
 
 
     def add_subject(self):
-        try:
-            print('ADDING SUBJECT')
-            
-            attributes = {"SubName":""
-                }
+        #try:
+        print('ADDING SUBJECT')
         
-            for attribute in attributes:
-                while(attributes[attribute]==""):
-                    attributes[attribute] = input(attribute+": ")
-                
-            query = "INSERT INTO `SUBJECT` VALUES ('%s');" % (attributes['SubName']) 
-            self.cursor.execute(query)
-            self.connection.commit()
-        except Exception as e:
-            print(e)
-            self.ask_user_action(self.add_subject)
+        attributes = {"Subject Name: ":""
+            }
+    
+        for attribute in attributes:
+            while(attributes[attribute]==""):
+                attributes[attribute] = input(attribute)
+            
+        query = "INSERT INTO `SUBJECT` VALUES ('%s');" % (attributes["Subject Name: "]) 
+        self.cursor.execute(query)
+        self.connection.commit()
+        # except Exception as e:
+        #     print(e)
+        #     self.ask_user_action(self.add_subject)
         
     def add_subjectInterest(self,username,dnum):
         try:
