@@ -8,9 +8,10 @@ class Session:
     
     def __init__(self):
         self.connection = pymysql.connect(host='localhost',
-                              user="daa",
-                              password="heck",
+                              user="root",
+                              password="prince",
                               db='UNIVERSITY',
+                              port=5005,
                               cursorclass=pymysql.cursors.DictCursor)
         self.cursor = self.connection.cursor()
         self.user = User(self)
@@ -40,7 +41,8 @@ class Session:
             print("2. Manage Study Group")
             print("3. UPDATE STUDENT INTEREST")
             print("4. SHOW SUBJECTS")
-            print("5. EXIT")
+            print("5. SEARCH FRIEND DETAIL BY NAME")
+            print("6. EXIT")
             choice = input()
             if(choice == "1"):
                 self.user.befriend()
@@ -51,6 +53,8 @@ class Session:
             elif(choice == '4'):
                 self.user.show_subject()
             elif(choice == "5"):
+                self.user.show_friends_details()
+            elif(choice == "6"):
                 break
             else:
                 print("Invalid choice")

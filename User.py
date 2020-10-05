@@ -9,6 +9,55 @@ class User:
         self.current_user = [None, None]
         return
 
+    def show_friends_details(self):
+        try:
+            query = "SELECT Friend2Name,Friend2DNum from `FRIENDS_WITH` WHERE Friend1Name = '%s' AND Friend1DNum = '%s'"
+            query = query % (self.current_user[0],self.current_user[1])
+            self.sesh.cursor.execute(query)
+            resultset1 = self.sesh.cursor.fetchall()
+            query = "SELECT Friend1Name,Friend1DNum from `FRIENDS_WITH` WHERE Friend2Name = '%s' AND Friend2DNum = '%s'"
+            query = query % (self.current_user[0],self.current_user[1])
+            self.sesh.cursor.execute(query)
+            resultset2 = self.sesh.cursor.fetchall()
+            all_friends = resultset1 + resultset2
+            check_str = "("
+            n = len(all_friends)
+            for friend in all_friends:
+                var = list(friend.values())
+                print(var)
+                check_str += "("
+                check_str += "'" + var[0] + "'"
+                check_str += "," + str(var[1]) + ")" 
+                n -= 1
+                if(n != 0):
+                    check_str += ","
+            check_str += ")"
+            subsetName = input("Enter part of friends full name: ")
+            
+            query = "SELECT CONCAT(FName,' ',MName,' ',SName) AS FULLNAME , Email FROM `USER` D WHERE "
+            
+            query += "(SELECT CONCAT(FName,' ',MName,' ',SName) FROM USER U WHERE U.UserName = D.UserName AND U.DNum = D.DNum)"
+            
+            query += " like '%" + subsetName + "%'" 
+            query += " AND (D.UserName,D.DNum) in %s" % (check_str)
+            
+            
+            self.sesh.cursor.execute(query)
+            resultset = self.sesh.cursor.fetchall()
+            if(not(resultset)):
+                print("No matching result")
+            else:
+                number = 1
+                for r in resultset:
+                    print(number)
+                    for e in r:
+                        print(e,r[e],sep=":")
+                    number += 1
+        except Exception as e:
+            print(e)
+
+
+
     def show_subject(self):
         query= 'SELECT * FROM SUBJECT'
         self.sesh.cursor.execute(query)

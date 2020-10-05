@@ -195,7 +195,7 @@ class Admin:
         except Exception as e:
             print(e)
             print("Try again")
-            self.add_languageKnown(username, dnum)
+            self.add_subjectInterest(username, dnum)
 
     def add_languageKnown(self,username,dnum):
         try:
