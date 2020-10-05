@@ -18,8 +18,8 @@ class Session:
         self.user = User(self)
         self.admin = Admin(self)
     
-
     def login_screen(self):
+        os.system("clear")
         print("Hello!")
         while True:
             print("1. Login")
@@ -37,6 +37,7 @@ class Session:
                 print("Invalid option")
 
     def user_screen(self):
+        os.system("clear")
         while True:
             print("1. Befriend")
             print("2. Manage Study Group")
@@ -54,8 +55,8 @@ class Session:
                 self.user.manage_studygroup()
             elif(choice == "3"):
                 self.user.update_interest()
-            elif(choice == "4"):
-                self.user.show_subject()
+            elif(choice == '4'):
+                self.see_available_screen("SUBJECT")
             elif(choice == "5"):
                 self.user.make_post()
             elif(choice == "6"):
@@ -70,6 +71,7 @@ class Session:
                 print("Invalid choice")
 
     def login(self):
+        os.system("clear")
         try:
             UName = input('UserName: ')
             DNumber = int(input('DNumber: '))
@@ -95,10 +97,12 @@ class Session:
     def signup(self):
         self.admin.add_user()
     
-    def admin_screen(self):
+    def admin_screen_main(self):
         os.system('clear')
-        print("Hello!")
+        return_msg = "Hello Admin!"
         while True:
+            os.system("clear")
+            print(return_msg)
             print("1. Add User")
             print("2. Add Course")
             print("3. Add Subject")
@@ -107,36 +111,46 @@ class Session:
 
             selection = input()
             if(selection == "1"):
-                self.admin.add_user()
+                return_msg = self.admin.add_user()
             elif(selection == "2"):
-                self.admin.add_course()
+                return_msg = self.admin.add_course()
             elif(selection == "3"):
-                self.admin.add_subject()
+                return_msg = self.admin.add_subject()
             elif(selection == "4"):
-                self.admin.add_language()
+                return_msg = self.admin.add_language()
             elif(selection == "5"):
                 break
             else:
                 print("Invalid option") 
-
-    def see_available(self):
-        return
+    
+    def see_available(self, table):
+        sql_query = f'SELECT * FROM {table};'
+        self.cursor.execute(sql_query)
+        result = self.cursor.fetchall()
+        headings = list(result[0].keys())
+        values = [(lambda x: list(x.values()))(x) for x in result]
+        print(values)
+        temp = "{:10}"*len(headings)
+        print(temp.format(headings[0]))
+        for i in values:
+            for j in i:
+                print(j, end="\t")
+            print()
     
 
     def main_screen(self):
-        print("WELCOME TO OPEN SOURCE UNIVERSITY")
+        os.system("clear")
+        print("Welcome to Open Source University")
         print("1. Admin")
         print("2. User")
         print("3. Exit")
         choice = input()
         if(choice == "1"):
-            self.admin_screen()
-            
+            self.admin_screen_main()
         elif(choice == "2"):
             self.login_screen()
         elif(choice == "3"):
             return 0
-            
         else:
             print("invalid choice")
     
