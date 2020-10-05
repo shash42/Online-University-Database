@@ -9,14 +9,13 @@ class Session:
     def __init__(self):
         self.connection = pymysql.connect(host='localhost',
                               user="daa",
-                              password="heck",
+                              password="adrcrony69",
                               db='UNIVERSITY',
                               cursorclass=pymysql.cursors.DictCursor)
         self.cursor = self.connection.cursor()
         self.user = User(self)
         self.admin = Admin(self)
     
-
     def login_screen(self):
         print("Hello!")
         while True:
@@ -49,7 +48,7 @@ class Session:
             elif(choice == '3'):
                 self.user.update_interest()
             elif(choice == '4'):
-                self.user.show_subject()
+                self.see_available("SUBJECT")
             elif(choice == "5"):
                 break
             else:
@@ -98,7 +97,7 @@ class Session:
             elif(selection == "2"):
                 self.admin.add_course()
             elif(selection == "3"):
-                self.admin.add_subject()
+                self.see_available("SUBJECT")
             elif(selection == "4"):
                 self.admin.add_language()
             elif(selection == "5"):
@@ -109,8 +108,11 @@ class Session:
     def add_entry_screen(self):
         return
     
-    def see_available(self):
-        return
+    def see_available(self, table):
+        sql_query = f'SELECT * FROM {table};'
+        self.cursor.execute(sql_query)
+        result = self.cursor.fetchall()
+        print(result)
     
 
     def main_screen(self):

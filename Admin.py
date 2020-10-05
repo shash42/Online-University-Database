@@ -1,4 +1,3 @@
-from boilerplate import Session
 import os
 import univutil
 
@@ -22,7 +21,6 @@ class Admin:
             email = input("Email*: ")
             password = input("Password*: ")
             sql = "INSERT INTO `USER` values ('%s',%d, '%s', '%s', '%s', '%s', '%s','%s');" % (username,dnum,fname,mname,lname,dob,email,password)
-            print(sql)
             self.sesh.cursor.execute(sql)
             
             numberOfLanguagesKnown = 0
@@ -45,7 +43,6 @@ class Admin:
 
     def get_number(self, username,tablename,columnname):
         query = "SELECT COUNT(*) FROM `%s` WHERE %s='%s'"%(tablename,columnname,username)
-        print(query)
         self.sesh.cursor.execute(query)
         resultset = self.sesh.cursor.fetchone()
         
