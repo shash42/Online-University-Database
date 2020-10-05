@@ -25,9 +25,9 @@ INSERT INTO `FRIENDS_WITH` (Friend1Name,Friend1DNum,Friend2Name,Friend2DNum) VAL
 INSERT INTO `FRIENDS_WITH` (Friend1Name,Friend1DNum,Friend2Name,Friend2DNum) VALUES ("morningstar",0,"lifeisgreat",0);
 
 INSERT INTO `COURSE_DIFFICULTY` VALUES
-("LINEAR ALGEBRA","MIT-OCW","YOUTUBE","Expert"),
-("CULTURE","NPTEL","Swayam","Beginner"),
-("OPEARTING SYSTEM","COURSERA","COURSERA","Intermediate");
+("LINEAR ALGEBRA","MIT-OCW","Expert","YOUTUBE"),
+("CULTURE","NPTEL","Beginner","Swayam"),
+("OPEARTING SYSTEM","COURSERA","Intermediate","COURSERA");
 
 
 
