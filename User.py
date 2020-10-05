@@ -1,4 +1,3 @@
-from boilerplate import Session
 import univutil
 
 class User:
@@ -7,6 +6,7 @@ class User:
         self.logged_in = False #Why do we need these?!
         self.role = None
         self.sesh = sesh
+        self.current_user = [None, None]
         return
 
     def show_subject(self):
