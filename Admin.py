@@ -65,9 +65,11 @@ class Admin:
             for attribute in attributes:
                 while(attributes[attribute]==""):
                     attributes[attribute] = input(attribute)
-            while(coursedifficulty not in ["Beginner", "Intermediate", "Expert"]):
-                coursedifficulty = input("Course Difficulty [Beginner/Intermediate/Expert]: ")
-            
+            while(True):
+                coursedifficulty = input("Course Difficulty [1. Beginner/2. Intermediate/3. Expert]: ")
+                if(coursedifficulty in ["1", "2", "3"]):
+                    coursedifficulty = ["Beginner", "Intermediate", "Expert"][int(coursedifficulty)-1]
+                    break
             sql_difficulty = "INSERT INTO `COURSE_DIFFICULTY` (`CourseName`, `CourseOrg`, `CoursePlatform`, `CourseDifficulty`) values (%s, %s, %s, %s);"
             sql_course = "INSERT INTO `COURSE` (`CourseName`, `CourseOrg`, `CoursePlatform`, `CourseHours`, `CourseDuration`) values (%s, %s, %s, %s, %s);"
 
@@ -81,8 +83,8 @@ class Admin:
                 subdub = ""
                 while(lang==""):
                     lang = input("Course Language: ")
-                while(subdub not in ["Native","Subs","Dubs"]):
-                    subdub = input("Language support [Native/Subs/Dubs]: ")
+                while(subdub not in ["Native","Sub","Dub"]):
+                    subdub = input("Language support [Native/Sub/Dub]: ")
                 if(subdub == "Native"):
                     subdub = None
                 sql_lang = "INSERT INTO `USED_FOR` values (%s, %s, %s)"
@@ -125,10 +127,31 @@ class Admin:
                     break
             
             self.sesh.connection.commit()
+            return "Course added"
+
         except Exception as e:
             print(e)
             univutil.ask_user_action(self.add_course)
 
+    def delete_course(self):
+        # try:
+        courseid = input("Enter CourseID: ")
+        sql_query = "SELECT * FROM `COURSE` WHERE CourseID = %s"
+        self.sesh.cursor.execute(sql_query, courseid)
+        result = self.cursor.fetchone()
+        print(result)
+        if(len(result) != 1):
+            return "Course with selected ID not present"
+        print(result)
+        sure = input("Are you sure? [y/n]: ")
+        if(sure == "n"):
+            return "Course not deleted"
+        sql_query = "DELETE FROM `COURSE` WHERE CourseID = %s"
+        self.sesh.cursor.execute(sql_query, courseid)
+        self.sesh.connection.commit()
+        return "Course deleted"
+        # except:
+        #     univutil.ask_user_action(self.delete_course)
 
     def add_subject(self):
         #try:
