@@ -39,10 +39,10 @@ INSERT INTO `COURSE` (`CourseName`, `CourseOrg`, `CoursePlatform`, `CourseHours`
 
 
 INSERT INTO `COURSE_INSTRUCTOR` VALUES
-(1,"XYZ"),
-(1,"PQR"),
-(2,"MNO"),
-(3,"ABC");
+("XYZ",1),
+("PQR",1),
+("MNO",2),
+("ABC",3);
 
 INSERT INTO `CONTAINS` VALUES
 ("Mathematics",1),
