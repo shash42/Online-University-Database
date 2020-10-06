@@ -8,12 +8,12 @@ from univutil import table_format
 class Session:
     
     def __init__(self):
-        self.connection = pymysql.connect(host="localhost",
-                              user="daa",
-                              password="adrcrony69",
-                              db='UNIVERSITY',
-                              charset='utf8mb4',
-                              cursorclass=pymysql.cursors.DictCursor)
+        # self.connection = pymysql.connect(host="localhost",
+        #                       user="daa",
+        #                       password="",
+        #                       db='UNIVERSITY',
+        #                       charset='utf8mb4',
+        #                       cursorclass=pymysql.cursors.DictCursor)
         self.cursor = self.connection.cursor()
         self.user = User(self)
         self.admin = Admin(self)

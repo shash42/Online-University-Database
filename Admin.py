@@ -274,4 +274,4 @@ class Admin:
         return
     
     def stat1(self):
-        
+        sql_query = "SELECT "
