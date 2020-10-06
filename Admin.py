@@ -246,3 +246,13 @@ class Admin:
             self.add_languageKnown(username, dnum)
 
         return
+
+    def avg_events(self):
+        sgquery = "SELECT SgUrl FROM STUDY_GROUP"
+        self.sesh.cursor.execute(sgquery)
+        num_sg = self.sesh.cursor.rowcount
+        eventquery = "SELECT SgUrl, EventNum from SG_EVENT"
+        self.sesh.cursor.execute(eventquery)
+        num_event = self.sesh.cursor.rowcount
+        print("Average Number of Events is: ", num_event/num_sg)
+        return
