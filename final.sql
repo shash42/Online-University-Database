@@ -170,18 +170,32 @@ CREATE TABLE `PARTICIPATES_IN` (
   `SgUrl` varchar(255),
   `LangCode` char(3),
   `CourseID` int,
-  `UserSgRole` varchar(255) NOT NULL DEFAULT "Member",
-  `UserSgContrib` int NOT NULL DEFAULT 0,
-  `UserSgRating` int NOT NULL DEFAULT 0,
+  PRIMARY KEY (`SgUrl`, `UserName`, `DNum`, `LangCode`, `CourseID`)
+);
+
+CREATE TABLE `TAKES` (
+  `UserName` varchar(255),
+  `DNum` int,
+  `CourseID` int,
   `UserPerformance` float NOT NULL DEFAULT 0,
   `UserNumHours` int NOT NULL DEFAULT 0,
   `UserProgress` float NOT NULL DEFAULT 0,
-  PRIMARY KEY (`SgUrl`, `UserName`, `DNum`, `LangCode`, `CourseID`),
-  CONSTRAINT check_sgrole CHECK (`UserSgRole` IN ("Member", "Admin")),
-  CONSTRAINT check_sgcontrib CHECK (`UserSgContrib` >= 0 AND `UserSgContrib` <= 10),
-  CONSTRAINT check_sgrating CHECK (`UserSgRating` >= 0 AND `UserSgRating` <= 10),
+  PRIMARY KEY (`UserName`, `DNum`, `CourseID`),
   CONSTRAINT check_performance CHECK (`UserPerformance` >= 0 AND `UserPerformance` <= 100),
   CONSTRAINT check_progress CHECK (`UserProgress` >= 0 AND `UserProgress` <= 100)
+);
+
+CREATE TABLE `MEMBER_OF` (
+  `UserName` varchar(255),
+  `DNum` int,
+  `SgUrl` varchar(255),
+  `UserSgRole` varchar(255) NOT NULL DEFAULT "Member",
+  `UserSgContrib` int NOT NULL DEFAULT 0,
+  `UserSgRating` int NOT NULL DEFAULT 0,
+  PRIMARY KEY (`UserName`, `DNum`, `SgUrl`),
+  CONSTRAINT check_sgrole CHECK (`UserSgRole` IN ("Member", "Admin")),
+  CONSTRAINT check_sgcontrib CHECK (`UserSgContrib` >= 0 AND `UserSgContrib` <= 10),
+  CONSTRAINT check_sgrating CHECK (`UserSgRating` >= 0 AND `UserSgRating` <= 10)
 );
 
 ALTER TABLE `KNOWS` 
@@ -275,6 +289,12 @@ ALTER TABLE `TARGET`
   ON UPDATE CASCADE;
 
 ALTER TABLE `PARTICIPATES_IN`
+  ADD CONSTRAINT participates_user_fk
+  FOREIGN KEY (`UserName`, `DNum`) REFERENCES `USER` (`UserName`, `DNum`)
+  ON DELETE CASCADE
+  ON UPDATE CASCADE;
+
+ALTER TABLE `PARTICIPATES_IN`
   ADD CONSTRAINT participates_sgurl_fk
   FOREIGN KEY (`SgUrl`) REFERENCES `STUDY_GROUP` (`SgUrl`)
   ON DELETE CASCADE
@@ -289,6 +309,30 @@ ALTER TABLE `PARTICIPATES_IN`
 ALTER TABLE `PARTICIPATES_IN`
   ADD CONSTRAINT participates_courseid_fk
   FOREIGN KEY (`CourseID`) REFERENCES `COURSE` (`CourseID`)
+  ON DELETE CASCADE
+  ON UPDATE CASCADE;
+
+ALTER TABLE `TAKES`
+  ADD CONSTRAINT takes_user_fk
+  FOREIGN KEY (`UserName`, `DNum`) REFERENCES `USER` (`UserName`, `DNum`)
+  ON DELETE CASCADE
+  ON UPDATE CASCADE;
+
+ALTER TABLE `TAKES`
+  ADD CONSTRAINT takes_courseid_fk
+  FOREIGN KEY (`CourseID`) REFERENCES `COURSE` (`CourseID`)
+  ON DELETE CASCADE
+  ON UPDATE CASCADE;
+
+ALTER TABLE `MEMBER_OF`
+  ADD CONSTRAINT member_user_fk
+  FOREIGN KEY (`UserName`, `DNum`) REFERENCES `USER` (`UserName`, `DNum`)
+  ON DELETE CASCADE
+  ON UPDATE CASCADE;
+
+ALTER TABLE `MEMBER_OF`
+  ADD CONSTRAINT member_sgurl_fk
+  FOREIGN KEY (`SgUrl`) REFERENCES `STUDY_GROUP` (`SgUrl`)
   ON DELETE CASCADE
   ON UPDATE CASCADE;
 
@@ -318,12 +362,6 @@ ALTER TABLE `FRIENDS_WITH`
 
 ALTER TABLE `POST`
   ADD CONSTRAINT post_madeby_fk
-  FOREIGN KEY (`UserName`, `DNum`) REFERENCES `USER` (`UserName`, `DNum`)
-  ON DELETE CASCADE
-  ON UPDATE CASCADE;
-
-ALTER TABLE `PARTICIPATES_IN`
-  ADD CONSTRAINT participates_user_fk
   FOREIGN KEY (`UserName`, `DNum`) REFERENCES `USER` (`UserName`, `DNum`)
   ON DELETE CASCADE
   ON UPDATE CASCADE;
