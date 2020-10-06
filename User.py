@@ -100,7 +100,8 @@ class User:
             elif(selection == "9"):
                 return
             else:
-                print("Invalid choice. Please try again!")
+                print()
+                return "Invalid choice. Please try again!"
 
         return
     

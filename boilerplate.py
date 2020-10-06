@@ -19,9 +19,9 @@ class Session:
         self.admin = Admin(self)
     
     def login_screen(self):
-        os.system("clear")
-        print("Hello!")
         while True:
+            os.system("clear")
+            print("Hello!")
             print("1. Login")
             print("2. Sign Up")
             print("3. Exit")
@@ -36,13 +36,40 @@ class Session:
             else:
                 print("Invalid option")
 
+    def login(self):
+        os.system("clear")
+#        try:
+        UName = input('UserName: ')
+        DNumber = int(input('DNumber: '))
+        Pass = input('Password: ')
+        query = "SELECT Password from `USER` where UserName = '%s' AND DNum = %d" % (UName,DNumber)
+        self.cursor.execute(query)
+        resultset = self.cursor.fetchone()
+        if(not(resultset)):
+            print("You need to sign up first")
+            input()
+        else:
+            if(resultset['Password'] == Pass):
+                print("Sucessfully logged in")
+                input()
+                self.user.current_user = [UName,DNumber]
+                self.user_screen()
+            else:
+                print("Authentication failed")
+                input()
+        # except Exception as e:
+        #     print(e)
+    
+    def signup(self):
+        self.admin.add_user()
+    
     def user_screen(self):
         while True:
             os.system("clear")
             print("1. Befriend")
             print("2. Manage Study Group")
             print("3. Interests Update")
-            print("4. Show courses")
+            print("4. Show offerings")
             print("5. Create Post")
             print("6. Delete Post")
             print("7. Edit Post")
@@ -56,6 +83,10 @@ class Session:
             elif(choice == "3"):
                 self.user.update_interest()
             elif(choice == '4'):
+                os.system("clear")
+                print("1. Courses")
+                print("2. Subjects")
+                choice = input()
                 self.see_available("COURSE")
             elif(choice == "5"):
                 self.user.make_post()
@@ -70,33 +101,6 @@ class Session:
             else:
                 print("Invalid choice")
 
-    def login(self):
-        os.system("clear")
-        try:
-            UName = input('UserName: ')
-            DNumber = int(input('DNumber: '))
-            Pass = input('Password: ')
-            query = "SELECT Password from `USER` where UserName = '%s' AND DNum = %d" % (UName,DNumber)
-            self.cursor.execute(query)
-            resultset = self.cursor.fetchone()
-            if(not(resultset)):
-                print("You need to sign up first")
-            else:
-                if(resultset['Password'] == Pass):
-                    print("Sucessfully logged in")
-                    self.user.current_user = [UName,DNumber]
-                    self.user_screen()
-                    
-                else:
-                    print("Authentication failed")
-            
-        except Exception as e:
-            print(e)
-        return   
-
-    def signup(self):
-        self.admin.add_user()
-    
     def admin_screen_main(self):
         os.system('clear')
         return_msg = "Hello Admin!"
@@ -104,21 +108,36 @@ class Session:
             os.system("clear")
             print(return_msg)
             print("1. Add User")
-            print("2. Add Course")
+            print("2. Manage Courses")
             print("3. Add Subject")
             print("4. Add Language")
-            print("5. Exit")
+            print("5. See stats")
+            print("6. Exit")
 
             selection = input()
             if(selection == "1"):
                 return_msg = self.admin.add_user()
             elif(selection == "2"):
-                return_msg = self.admin.add_course()
+                os.system("clear")
+                print("1. Add Course")
+                print("2. Remove Course")
+                print("3. Back")
+                selection = input()
+                while(selection not in ["1", "2","3"]):
+                    selection = input("Enter valid option")
+                if(selection == "1"):
+                    return_msg = self.admin.add_course()
+                elif(selection == "2"):
+                    return_msg = self.admin.delete_course()
+                else:
+                    continue
             elif(selection == "3"):
                 return_msg = self.admin.add_subject()
             elif(selection == "4"):
                 return_msg = self.admin.add_language()
             elif(selection == "5"):
+                return_msg = self.admin_stats_screen()
+            elif(selection == "6"):
                 break
             else:
                 print("Invalid option") 
@@ -147,12 +166,23 @@ class Session:
                     continue
                 break
             elif(choice == "3"):
+                result = self.see_all(table)
+                courseid = input("Enter CourseID: ")
+                try:
+                    sql_query = "SELECT CourseName, CourseRating FROM `COURSE` WHERE CourseID = %s"
+                    self.cursor.execute(sql_query, courseid)
+                    result = self.cursor.fetchall()
+                    table_format(result)
+                except:
+                    print("Error")
+                
+            elif(choice == "4"):
                 return
             else:
                 print("Invalid choice")
     
         if(not(refine)):
-            self.see_all(table)
+            self.see_all("COURSE")
             input()
         elif(refine == "1"):
             values = self.see_all("LANGUAGE")
@@ -174,14 +204,14 @@ class Session:
             try:
                 choice = int(choice)
                 subname = values[choice-1]['SubName']
+                sql_query = "SELECT CourseName, SubName FROM `COURSE` NATURAL JOIN `CONTAINS` WHERE SubName = %s"
+                self.cursor.execute(sql_query, subname)
+                result = self.cursor.fetchall()
+                table_format(result)
+                input()
             except:
                 print("Error")
-            sql_query = "SELECT CourseName, SubName FROM `COURSE` NATURAL JOIN `CONTAINS` WHERE SubName = %s"
-            self.cursor.execute(sql_query, subname)
-            result = self.cursor.fetchall()
-            table_format(result)
-            input()
-
+            
         elif(refine == "3"):
             choice = input("Enter course name: ")
             sql_query = "SELECT * FROM `COURSE` WHERE CourseName LIKE '%{}%'"        
@@ -189,6 +219,18 @@ class Session:
             result = self.cursor.fetchall()
             table_format(result)
             input()
+
+    def admin_stats_screen(self):
+        while(True):
+            os.system("clear")
+            print("1. Average user performance with friends in course")
+            print("2. Back")
+            choice = input()
+            if(choice == "1"):
+                self.admin.stat1()
+                break
+            elif(choice == "2"):
+                break
 
     def see_all(self, table):
         sql_query = f'SELECT * FROM {table};'
@@ -212,9 +254,8 @@ class Session:
             return 0
         else:
             print("invalid choice")
-    
+            input()
         return
-
 
 def main():
     session = Session()
@@ -224,5 +265,4 @@ def main():
     
 
 if(__name__ == "__main__"):
-    
     main()

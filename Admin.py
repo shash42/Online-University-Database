@@ -7,7 +7,6 @@ class Admin:
         return
 
     def add_user(self):
-        #[TODO:] Input validation
         try:
             os.system('clear')
             print("ADD NEW USER")
@@ -85,10 +84,16 @@ class Admin:
             courseid = self.sesh.cursor.fetchone()['LAST_INSERT_ID()']
 
             while(True):
-                lang = ""
                 subdub = ""
-                while(lang==""):
-                    lang = input("Course Language: ")
+                values = self.sesh.see_all("LANGUAGE")
+                choice = input("Pick language index: ")
+                while(True):
+                    try:
+                        choice = int(choice)
+                        lang = values[choice-1]['LangCode']
+                        break
+                    except:
+                        print("Error. Invalid index")
                 while(subdub not in ["Native","Sub","Dub"]):
                     subdub = input("Language support [Native/Sub/Dub]: ")
                 if(subdub == "Native"):
@@ -100,9 +105,15 @@ class Admin:
                     break
             
             while(True):
-                subject = ""
-                while(subject == ""):
-                    subject = input("Select the subject the course belongs to: ")
+                values = self.sesh.see_all("SUBJECT")
+                choice = input("Pick subject index: ")
+                while(True):
+                    try:
+                        choice = int(choice)
+                        subject = values[choice-1]['SubName']
+                        break
+                    except:
+                        print("Error. Invalid index")
                 sql_sub = "INSERT INTO `CONTAINS` values(%s, %s)"
                 self.sesh.cursor.execute(sql_sub, (subject, courseid))
                 cont = input("More subjects? [y/n]: ")
@@ -121,10 +132,19 @@ class Admin:
             
             prereq = input("Add course prerequisites? [y/n]: ")
             while(prereq == "y"):
-                courseprerequisite = "" 
+                sql_query = f'SELECT CourseID, CourseName FROM `COURSE`;'
+                self.cursor.execute(sql_query)
+                result = self.cursor.fetchall()
+                table_format(result)
+                choice = input("Select course index: ")
+                while(True):
+                    try:
+                        choice = int(choice)
+                        courseprerequisite = values[choice-1]['CourseID']
+                        break
+                    except:
+                        print("Error. Invalid index")
                 courseprerequisite_importance = ""
-                while(courseprerequisite==""):
-                    courseprerequisite = input("Prequisite course ID: ")
                 while(courseprerequisite_importance not in ["Helpful", "Essential"]):
                     courseprerequisite_importance = input("Prequisite importance [Helpful/Essential]: ")
                 sql_instructor = "INSERT INTO `PREREQUISITE` values (%s, %s, %s)"
@@ -140,20 +160,16 @@ class Admin:
             univutil.ask_user_action(self.add_course)
 
     def delete_course(self):
-        # try:
-        courseid = input("Enter CourseID: ")
-        sql_query = "SELECT * FROM `COURSE` WHERE CourseID = %s"
-        self.sesh.cursor.execute(sql_query, courseid)
-        result = self.cursor.fetchone()
-        print(result)
-        if(len(result) != 1):
-            return "Course with selected ID not present"
-        print(result)
+        #try:
+        values = self.sesh.see_all("COURSE")
+        choice = input("Enter course index: ")
+        choice = int(choice)
+        cname, corg, cplat = values[choice-1]['CourseName'], values[choice-1]['CourseOrg'], values[choice-1]['CoursePlatform']
         sure = input("Are you sure? [y/n]: ")
         if(sure == "n"):
             return "Course not deleted"
-        sql_query = "DELETE FROM `COURSE` WHERE CourseID = %s"
-        self.sesh.cursor.execute(sql_query, courseid)
+        sql_query = "DELETE FROM `COURSE_DIFFICULTY` WHERE CourseName = %s AND CourseOrg = %s AND CoursePlatform = %s"
+        self.sesh.cursor.execute(sql_query, (cname, corg, cplat))
         self.sesh.connection.commit()
         return "Course deleted"
         # except:
@@ -256,3 +272,6 @@ class Admin:
         num_event = self.sesh.cursor.rowcount
         print("Average Number of Events is: ", num_event/num_sg)
         return
+    
+    def stat1(self):
+        
