@@ -17,7 +17,7 @@ class Session:
         self.cursor = self.connection.cursor()
         self.user = User(self)
         self.admin = Admin(self)
-    
+
     def login_screen(self):
         while True:
             os.system("clear")
