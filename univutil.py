@@ -14,14 +14,14 @@ def ask_user_action(fun_name):
     return
 
 def table_format(result):
+    if(len(result) == 0):
+        print("Found nothing")
+        return
     headings = ["Index"]+list(result[0].keys())
     values = [(lambda x: list(x.values()))(x) for x in result]
-    headings = ["Index"]+list(result[0].keys())
-    values = [(lambda x: list(x.values()))(x) for x in result]
-    temp = "{}\t"*len(headings)
+    temp = "{:<15}"*len(headings)
     print(temp.format(*headings))
     for count, i in enumerate(values):
-        print(count+1, end='\t')
-        for j in i:
-            print(j, end="\t")
-        print()
+        i = [count+1]+i
+        i = [k if k!=None else "NA" for k in i]
+        print(temp.format(*i))
