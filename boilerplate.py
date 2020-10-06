@@ -3,16 +3,16 @@ import os
 import pymysql.cursors
 from User import User
 from Admin import Admin
+from univutil import table_format
 
 class Session:
     
     def __init__(self):
-        self.connection = pymysql.connect(host="127.0.0.1",
-                              user="root",
-                              password="blahblah",
+        self.connection = pymysql.connect(host="localhost",
+                              user="daa",
+                              password="adrcrony69",
                               db='UNIVERSITY',
                               charset='utf8mb4',
-                              port = 5005,
                               cursorclass=pymysql.cursors.DictCursor)
         self.cursor = self.connection.cursor()
         self.user = User(self)
@@ -37,12 +37,12 @@ class Session:
                 print("Invalid option")
 
     def user_screen(self):
-        os.system("clear")
         while True:
+            os.system("clear")
             print("1. Befriend")
             print("2. Manage Study Group")
             print("3. Interests Update")
-            print("4. Show subjects")
+            print("4. Show courses")
             print("5. Create Post")
             print("6. Delete Post")
             print("7. Edit Post")
@@ -56,7 +56,7 @@ class Session:
             elif(choice == "3"):
                 self.user.update_interest()
             elif(choice == '4'):
-                self.see_available_screen("SUBJECT")
+                self.see_available("COURSE")
             elif(choice == "5"):
                 self.user.make_post()
             elif(choice == "6"):
@@ -124,19 +124,78 @@ class Session:
                 print("Invalid option") 
     
     def see_available(self, table):
+        refine = False
+        while(True):
+            os.system("clear")
+            print("1. See all")
+            print("2. Search by")
+            print("3. Back")
+            choice = input()
+            if(choice == "1"):
+                break
+            elif(choice == "2"):
+                os.system("clear")
+                print("1. Language")
+                print("2. Subject")
+                print("3. Name")
+                print("4. Back")
+                refine = input()
+                if(refine not in ["1","2","3","4"]):
+                    print("Invalid choice")
+                    continue
+                if(refine == "4"):
+                    continue
+                break
+            elif(choice == "3"):
+                return
+            else:
+                print("Invalid choice")
+    
+        if(not(refine)):
+            self.see_all(table)
+            input()
+        elif(refine == "1"):
+            values = self.see_all("LANGUAGE")
+            choice = input("Pick language index: ")
+            try:
+                choice = int(choice)
+                lang_code = values[choice-1]['LangCode']
+            except:
+                print("Error")
+            sql_query = "SELECT CourseName, LangCode FROM `COURSE` NATURAL JOIN `USED_FOR` WHERE LangCode = %s"
+            self.cursor.execute(sql_query, lang_code)
+            result = self.cursor.fetchall()
+            table_format(result)
+            input()
+
+        elif(refine == "2"):
+            values = self.see_all("SUBJECT")
+            choice = input("Pick subject index: ")
+            try:
+                choice = int(choice)
+                subname = values[choice-1]['SubName']
+            except:
+                print("Error")
+            sql_query = "SELECT CourseName, SubName FROM `COURSE` NATURAL JOIN `CONTAINS` WHERE SubName = %s"
+            self.cursor.execute(sql_query, subname)
+            result = self.cursor.fetchall()
+            table_format(result)
+            input()
+
+        elif(refine == "3"):
+            choice = input("Enter course name: ")
+            sql_query = "SELECT * FROM `COURSE` WHERE CourseName LIKE '%{}%'"        
+            self.cursor.execute(sql_query.format(choice))
+            result = self.cursor.fetchall()
+            table_format(result)
+            input()
+
+    def see_all(self, table):
         sql_query = f'SELECT * FROM {table};'
         self.cursor.execute(sql_query)
         result = self.cursor.fetchall()
-        headings = list(result[0].keys())
-        values = [(lambda x: list(x.values()))(x) for x in result]
-        print(values)
-        temp = "{:10}"*len(headings)
-        print(temp.format(headings[0]))
-        for i in values:
-            for j in i:
-                print(j, end="\t")
-            print()
-    
+        table_format(result)
+        return result
 
     def main_screen(self):
         os.system("clear")
