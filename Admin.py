@@ -144,7 +144,7 @@ class Admin:
         courseid = input("Enter CourseID: ")
         sql_query = "SELECT * FROM `COURSE` WHERE CourseID = %s"
         self.sesh.cursor.execute(sql_query, courseid)
-        result = self.cursor.fetchone()
+        result = self.sesh.cursor.fetchone()
         print(result)
         if(len(result) != 1):
             return "Course with selected ID not present"

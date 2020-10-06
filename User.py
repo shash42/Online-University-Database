@@ -82,8 +82,7 @@ class User:
             selection = 0
             print("1. Add pinned information")
             print("2. Add an event")
-            print("3. Add a course")
-            print("4. Add a language")
+            print("3. Add options (course/languages)")
             print("5. Change status")
             print("9. Exit")
             selection = print("Choose one of the above options: ")
@@ -92,9 +91,7 @@ class User:
             elif(selection == "2"):
                 self.create_event(sg_url)
             elif(selection == "3"):
-                print("Not implemented") # [TODO]
-            elif(selection == "4"):
-                print("Not implemented") # [TODO]
+                self.addoption_studygroup(sg_url)
             elif(selection == "5"):
                 self.change_sgstatus(sg_url)
             elif(selection == "9"):
@@ -105,6 +102,7 @@ class User:
         return
     
     def create_studygroup(self):
+        #[TODO:]
         try:
             attributes = {
                 "StudyGroup URL" : "",
@@ -116,11 +114,67 @@ class User:
             query = "INSERT INTO `STUDY_GROUP` (SgUrl) VALUES ('%s')" % (attributes["SgUrl"])
             self.sesh.cursor.execute(query)
             self.sesh.connection.commit()
-        
+
         except Exception as e:
             print(e)
             self.sesh.ask_user_action(self.create_studygroup)
     
+    def addoption_studygroup(self, sg_url):
+        print("Choose a Course and it's corresponding discussion language! Atleast one must be new for the study group")
+        courseid = -1
+        langcode = ""
+        
+        try:        
+            #[TODO:] Validate if CourseID and Lang exist in DB or Display possible choices
+            coursequery = "SELECT DISTINCT `CourseID` FROM `PARTICIPATES_IN` WHERE `SgUrl` = '%s'" % sg_url
+            self.sesh.cursor.execute(coursequery)
+            course_count = self.sesh.cursor.rowcount
+            course_sg = self.sesh.cursor.fetchall()
+            langquery = "SELECT DISTINCT `LangCode` FROM `PARTICIPATES_IN` WHERE `SgUrl` = '%s'" % sg_url
+            self.sesh.cursor.execute(langquery)
+            lang_count = self.sesh.cursor.rowcount
+            lang_sg = self.sesh.cursor.fetchall()
+            lang_new_flag = 1
+            course_new_flag = 1
+
+            while(langcode.__len__ != 3):
+                langcode = input("Discussion Language [3-letter-code]: ")
+            for i in range(lang_count):
+                if(lang_sg[i]["LangCode"] == langcode):
+                    lang_new_flag = 0
+                    break
+            
+            while(courseid >= 0):
+                courseid = int(input("CourseID: ")) 
+            for i in range(course_count):
+                if(course_sg[i]["CourseID"] == courseid):
+                    course_new_flag = 0
+                    break            
+
+            if(course_new_flag == 0 and lang_new_flag == 0):
+                print("You aren't inserting anything new!")
+                return
+
+            query = "INSERT INTO `PARTICIPATES_IN` VALUES (%s, %d, %s, %s, %d)" % (self.current_user[0], self.current_user[1], sg_url, langcode, courseid)
+            self.sesh.cursor.execute(query)
+            self.sesh.cursor.commit()
+            if(course_new_flag):
+                print("Added a new course succesfully!")
+            if(lang_new_flag):
+                print("Added a new language succesfully!")
+                    
+        except Exception as e:
+            print(e)
+            self.sesh.ask_user_action(self.addoption_studygroup)
+
+        else: # Also add User - Course to User TAKES Course
+            try:
+                coursequery = "INSERT INTO `TAKES` (UserName, DNum, CourseID VALUES) VALUES (%s, %d, %d)" % (self.current_user[0], self.current_user[1], courseid)
+                self.sesh.cursor.execute(coursequery)
+                self.sesh.cursor.commit()
+            except Exception as e:
+                print(e) #[TODO:] After testing comment this and pass because error might be that it already exists
+
     def create_meet(self, sg_url, event_num):
         try:
             attrM = {
@@ -134,12 +188,13 @@ class User:
             query = "INSERT INTO `MEET` (SgUrl, EventNum, MeetTime, MeetDuration) VALUES ('%s' '%s' '%s' '%s')" % (sg_url, event_num, attrM["Meet Time YYYY/MM/DD HH/MI/SS"], attrM["Meet Duration (mins)"])
             self.sesh.cursor.execute(query)
             self.sesh.connection.commit()
-            print("Added Event Succesfully!")
 
         except Exception as e:
             print(e)
             self.sesh.ask_user_action(self.create_meet)
         
+        else:
+            print("Added Event Succesfully!")
         return
 
     def create_target(self, sg_url, event_num):
