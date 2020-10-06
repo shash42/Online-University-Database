@@ -160,23 +160,11 @@ class Admin:
             univutil.ask_user_action(self.add_course)
 
     def delete_course(self):
-<<<<<<< HEAD
         #try:
         values = self.sesh.see_all("COURSE")
         choice = input("Enter course index: ")
         choice = int(choice)
         cname, corg, cplat = values[choice-1]['CourseName'], values[choice-1]['CourseOrg'], values[choice-1]['CoursePlatform']
-=======
-        # try:
-        courseid = input("Enter CourseID: ")
-        sql_query = "SELECT * FROM `COURSE` WHERE CourseID = %s"
-        self.sesh.cursor.execute(sql_query, courseid)
-        result = self.sesh.cursor.fetchone()
-        print(result)
-        if(len(result) != 1):
-            return "Course with selected ID not present"
-        print(result)
->>>>>>> 630ee98862ed069e4bee22aeff8ffd6bf5185c99
         sure = input("Are you sure? [y/n]: ")
         if(sure == "n"):
             return "Course not deleted"

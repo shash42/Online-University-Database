@@ -365,7 +365,6 @@ ALTER TABLE `POST`
   FOREIGN KEY (`UserName`, `DNum`) REFERENCES `USER` (`UserName`, `DNum`)
   ON DELETE CASCADE
   ON UPDATE CASCADE;
-<<<<<<< HEAD
 
 ALTER TABLE `PARTICIPATES_IN`
   ADD CONSTRAINT participates_user_fk
@@ -379,5 +378,3 @@ AFTER INSERT ON POST
   UPDATE COURSE 
   SET CourseRating = (SELECT AVG(ReviewRating) FROM POST WHERE COURSE.CourseID = POST.CourseID)
   WHERE CourseID = NEW.CourseID;
-=======
->>>>>>> 630ee98862ed069e4bee22aeff8ffd6bf5185c99
