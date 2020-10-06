@@ -90,7 +90,7 @@ CREATE TABLE `USED_FOR` (
   `LangCode` char(3),
   `CourseID` int,
   `SubDub` varchar(255),
-  CONSTRAINT check_subdum CHECK (`SubDub` IN ("Sub", "Dub")),
+  CONSTRAINT check_subdum CHECK (`SubDub` IN ("Sub", "Dub","Native")),
   PRIMARY KEY (`LangCode`, `CourseID`)
 );
 
