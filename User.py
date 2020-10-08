@@ -336,7 +336,7 @@ class User:
 
             contrib = -1
             while(contrib < 0 or contrib > 10):
-                contrib = int(input("Contribution rating of user [1-10]: ")
+                contrib = int(input("Contribution rating of user [1-10]: "))
             contribquery = "UPDATE MEMBER_OF SET UserSgContrib = %s WHERE SgUrl = '%s' AND UserName = '%s' AND DNum = %s;" 
             self.sesh.cursor.execute(contribquery, (contrib, sg_url, self.current_user[0], self.current_user[1]))
             self.sesh.cursor.connection.commit()
