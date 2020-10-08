@@ -12,6 +12,7 @@ def ask_user_action(fun_name):
         else:
             print("Invalid choice")
     return
+   
 
 def table_format(result):
     if(len(result) == 0):

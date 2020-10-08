@@ -66,40 +66,26 @@ class Session:
     def user_screen(self):
         while True:
             os.system("clear")
-            print("1. Befriend")
-            print("2. Manage Study Group")
-            print("3. Interests Update")
-            print("4. Show offerings")
-            print("5. Create Post")
-            print("6. Delete Post")
-            print("7. Edit Post")
-            print("8. Search friend details by name")
+            print("1. Manage Connections")
+            print("2. Manage Courses/Interests")
+            print("3. Manage Study Groups")
+            print("4. Manage Posts")
             print("9. EXIT")
             choice = input()
             if(choice == "1"):
-                self.user.befriend()
+                self.user.manage_connections()
             elif(choice == "2"):
-                self.user.manage_studygroup()
+                self.user.manage_courses()
             elif(choice == "3"):
-                self.user.update_interest()
-            elif(choice == '4'):
-                os.system("clear")
-                print("1. Courses")
-                print("2. Subjects")
-                choice = input()
-                self.see_available("COURSE")
-            elif(choice == "5"):
-                self.user.make_post()
-            elif(choice == "6"):
-                self.user.delete_post()
-            elif(choice == "7"):
-                self.user.update_post()
-            elif(choice == "8"):
-                self.user.show_friends_details()
+                self.user.manage_studygroup()
+            elif(choice == "4"):
+                self.user.manage_posts()
             elif(choice == "9"):
                 break
             else:
                 print("Invalid choice")
+        
+        return
 
     def admin_screen_main(self):
         os.system('clear')

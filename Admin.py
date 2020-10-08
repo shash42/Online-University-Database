@@ -133,8 +133,8 @@ class Admin:
             prereq = input("Add course prerequisites? [y/n]: ")
             while(prereq == "y"):
                 sql_query = f'SELECT CourseID, CourseName FROM `COURSE`;'
-                self.cursor.execute(sql_query)
-                result = self.cursor.fetchall()
+                self.sesh.cursor.execute(sql_query)
+                result = self.sesh.cursor.fetchall()
                 table_format(result)
                 choice = input("Select course index: ")
                 while(True):

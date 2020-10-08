@@ -1,4 +1,5 @@
 import univutil
+import os
 
 class User:
 
@@ -8,6 +9,7 @@ class User:
         self.sesh = sesh
         self.current_user = [None, None]
         return
+
 
     def show_friends_details(self):
         try:
@@ -56,22 +58,29 @@ class User:
         except Exception as e:
             print(e)
         
-
-
     def show_subject(self):
         query= 'SELECT * FROM SUBJECT'
         self.sesh.cursor.execute(query)
         resultset = self.sesh.cursor.fetchall()
         for r in resultset:
             print(r)
-
-    
-    def enroll(self): # This would be a insertion into the quarternary relationship along with a call to create_studygroup if reqd.
+        return
+ 
+    def showSgForCourse(self, courseid):
+        sg_query = '''
+                    CREATE VIEW REQ_SG AS
+                    (SELECT DISTINCT SgUrl FROM PARTICIPATES_IN WHERE CourseID = %d);
+                    CREATE VIEW POSS_SG AS
+                    (SELECT DISTINCT SgUrl FROM REQ_SG JOIN STUDY_GROUP WHERE SgStatus = 'Active' OR SgStatus = 'Planned');
+                    SELECT SgUrl, AVG(UserSgRating), COUNT(EventNum), COUNT(DISTINCT (UserName, DNum))
+                    FROM  POSS_SG JOIN `MEMBER_OF`, POSS_SG JOIN `SG_EVENT`
+                    GROUP BY SgUrl
+                    ORDER BY SgUpdated DESC'''
+        self.sesh.cursor.execute(sg_query)
+        result = self.sesh.cursor.fetchall()
+        table_format(result)
         return
 
-
-    def unenroll(self): # This would be a deletion from the quarternary relationship
-        return
 
     def manage_studygroup(self):
         # [TODO:] Display list of study groups user is part of here.
@@ -84,6 +93,7 @@ class User:
             print("2. Add an event")
             print("3. Add options (course/languages)")
             print("5. Change status")
+            print("6. Manage User")
             print("9. Exit")
             selection = print("Choose one of the above options: ")
             if(selection == "1"):
@@ -94,6 +104,8 @@ class User:
                 self.addoption_studygroup(sg_url)
             elif(selection == "5"):
                 self.change_sgstatus(sg_url)
+            elif(selection == "6"):
+                print("Not implemented") #[TODO:]
             elif(selection == "9"):
                 return
             else:
@@ -101,25 +113,130 @@ class User:
                 return "Invalid choice. Please try again!"
 
         return
-    
-    def create_studygroup(self):
-        #[TODO:]
+
+    def manage_connections(self):
+        while(True):
+            os.system("clear")
+            print("1. Befriend")
+            print("2. Search Friend Details by Name")
+            print("5. Exit")
+            choice = input("Enter choice number: ")
+            if(choice == "1"):
+                self.befriend()
+            elif(choice == "2"):
+                self.show_friends_details()
+            elif(choice == "5"):
+                break
+            else:
+                print("Invalid choice")
+        return
+
+    def manage_courses(self):
+        while(True):
+            os.system("clear")
+            print("1. Enroll")
+            print("2. Unenroll")
+            print("3. Show offerings")
+            print("4. Interests Update")
+            print("5. Exit")
+            choice = input("Enter chocie number: ")
+            if(choice == "1"):
+                self.enroll()
+            elif(choice == 2):
+                self.unenroll()
+            elif(choice == 3):
+                #[TODO:] Shift this to a function and complete it!
+                os.system("clear")
+                print("1. Courses")
+                print("2. Subjects")
+                choice = input()
+                self.see_available("COURSE")
+            elif(choice == 4):
+                self.update_interest()
+            elif(choice == 5):
+                break
+            else:
+                print("Invalid choice")
+        return
+
+    def manage_posts(self):
+        while(True):
+            os.system("clear")
+            print("1. Create Post")
+            print("2. Edit Post")
+            print("3. Delete Post")
+            print("4. View Post of User")
+            print("5. Exit")
+            choice = input("Enter choice number: ")
+            if(choice == "1"):
+                self.make_post()
+            elif(choice == "2"):
+                self.update_post()
+            elif(choice == "3"):
+                self.delete_post()
+            elif(choice == "4"):
+                # [TODO:] Optionally implement
+                print("Not implemented")
+            elif(choice == "5"):
+                break
+            else:
+                print("Invalid option")
+        return
+
+
+    def enroll(self): # This would be a insertion into the quarternary relationship along with creating study_group if reqd.
         try:
-            attributes = {
-                "StudyGroup URL" : "",
-            }
-            for attribute in attributes:
-                    while(attributes[attribute]==""):
-                        attributes[attribute] = input(attribute+": ")
-                                  
-            query = "INSERT INTO `STUDY_GROUP` (SgUrl) VALUES ('%s')" % (attributes["SgUrl"])
+            print("You can enroll in a new course (and a study group) or a new study group for a course already being taken.")
+            courseid = int(input("CourseID: "))
+            #[TODO:] Validate that course exists and put in while loop
+            coursequery = "INSERT IGNORE INTO `TAKES` VALUES (%s, %d, %d)" % (self.current_user[0], self.current_user[1], courseid)
+            self.sesh.cursor.execute(coursequery) # This ignores if entry in TAKES already exists^
+            
+            print("Available study groups for this course:")
+            self.showSgForCourse(courseid)
+            new_sg = 'X'
+            sg = input("Study Group URL (from above or new): ")
+            while(new_sg != 'N' and new_sg != 'E'):
+                new_sg = input("Do you want to create your own study group (N) or join an existing one [E]: ")
+            if(new_sg == 'N'):
+                sgcreate = "INSERT INTO STUDY_GROUP %s" % (sg)
+                self.sesh.cursor.execute(sgcreate)
+                sgquery = "INSERT IGNORE INTO `MEMBER_OF` VALUES (%s, %d, %s, %s)" % (self.current_user[0], self.current_user[1], sg, "Admin")
+                self.sesh.cursor.execute(sgquery)
+                print("Created a new study group succesfully!")
+                
+            else:
+                #[TODO:] else Validate that StudyGroup exists and put in while loop
+                sgquery = "INSERT IGNORE INTO `MEMBER_OF` VALUES (%s, %d, %s)" % (self.current_user[0], self.current_user[1], sg)
+                self.sesh.cursor.execute(sgquery)
+            
+            #[TODO:] We are not showing languages of each study group, and user might not want any of those list, but is stuck in while() here.
+            print("Available languages for this study group")
+            langquery = "SELECT DISTINCT LangCode, LangName FROM PARTICIPATE_IN WHERE SgUrl = '%s'" % (sg)
+            self.sesh.cursor.execute(langquery)
+            result = self.sesh.cursor.fetchall()
+            lfound = 0
+            while(lfound==0):
+                langcode = input("Language to participate in study_group (langcode): ")
+                for i in range(self.sesh.cursor.rowcount):
+                    if(result[i]["LangCode"]==langcode):
+                        lfound=1
+            
+            query = "INSERT INTO PARTICIPATES_IN VALUES (%s, %d, %s, %s, %d)" % (self.current_user[0], self.current_user[1], sg, langcode, courseid)
             self.sesh.cursor.execute(query)
             self.sesh.connection.commit()
+            print("Enrolled in Course: %d as a member of Study Group: %s in language: %s succesfully!" % (courseid, sg, langcode))
 
         except Exception as e:
             print(e)
-            self.sesh.ask_user_action(self.create_studygroup)
-    
+            ask_user_action(self.enroll)
+        
+        return
+
+    def unenroll(self): # [TODO:] This would be a deletion from the quarternary relationship
+        return    
+
+
     def addoption_studygroup(self, sg_url):
         print("Choose a Course and it's corresponding discussion language! Atleast one must be new for the study group")
         courseid = -1
