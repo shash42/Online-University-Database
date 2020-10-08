@@ -32,7 +32,7 @@ To run this on your system you need:
 <h4> Execution </h4>
 
 2. Make sure the user temp is created and exists with all privileges and along with an empty database called UNIVERSITY in your SQL server before running these commands.
-2. Loading: <code>mysql -u <em>temp</em> UNIVERSITY < definition.sql</code>
+2. Loading: <code>mysql -u <em>temp</em> UNIVERSITY < data.sql</code>
 
 3. Use the command `python main.py` to start the CLI.
 
