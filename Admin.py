@@ -261,6 +261,7 @@ class Admin:
     def avg_events(self):
         sgquery = "SELECT SgUrl FROM STUDY_GROUP"
         self.sesh.cursor.execute(sgquery)
+        self.sesh.cursor.fetchall()
         num_sg = self.sesh.cursor.rowcount
         eventquery = "SELECT SgUrl, EventNum from SG_EVENT"
         self.sesh.cursor.execute(eventquery)
@@ -268,5 +269,94 @@ class Admin:
         print("Average Number of Events is: ", num_event/num_sg)
         return
     
-    def stat1(self):
-        sql_query = "SELECT "
+    def learning_analysis(self, courseid):
+        # define score as: (mean of course rating, performance)
+        # get top and bottom half of TAKES based on this score.
+        # print studygroup information for users in these halves, avg (no. of study groups), avg (no. of users), avg (no. of friends)
+        # print interactivity information for users in these halves, average(usersgrating) average(usersgcontrib)
+        print("Analysis of Study Group correlation with user satisfaction in course ", courseid)
+        cc = self.sesh.cursor
+        perfq = '''CREATE VIEW PERFORMANCE AS
+                (SELECT UserName, DNum, UserPerformance FROM TAKES WHERE CourseID = %s);
+                ''' % (courseid)
+        rateq = '''CREATE VIEW RATING AS
+                (SELECT UserName, DNum, ReviewRating FROM POST WHERE CourseID = %s AND ReviewRating IS NOT NULL);
+                ''' % (courseid)
+        scoreq = '''CREATE VIEW SCORE AS
+                (SELECT UserName, DNum, Points = (UserPerformance + ReviewRating)/2 FROM RATING NATURAL JOIN PERFORMANCE WHERE CourseID = %s);
+                SELECT * FROM SCORE;
+                ''' % (courseid)
+        sguserq = '''CREATE VIEW SGUSERS AS
+                (SELECT SgUrl, Count(DISTINCT(UserName, DNum)) AS NumUsers FROM MEMBER_OF GROUP BY SgUrl);
+                '''
+        sgq = '''CREATE VIEW SG AS
+                (SELECT UserName, DNum, SgUrl, Points FROM SCORE NATURAL JOIN PARTICIPATES_IN WHERE CourseID = %s);
+                ''' % (courseid)
+        USGq = '''CREATE VIEW UserSG AS
+                (SELECT UserName, DNum, SgUrl, Points, UserSgContrib, UserSgRating FROM SG NATURAL JOIN MEMBER_OF);
+                '''
+        FinUSGq = '''CREATE VIEW FinUserSG AS
+                (SELECT UserName, DNum, SgUrl, Points, NumUsers, UserSgContrib, UserSgRating FROM UserSG NATURAL JOIN SGUSERS);
+                '''
+        Uq = '''CREATE VIEW UserTaken AS
+                (SELECT UserName, DNum FROM FinUserSG);
+                '''
+        UFrenq = '''CREATE VIEW UFrenz AS
+                (SELECT UserName, DNum, Friend2Name AS FrName, Friend2DNum AS FrDNum FROM UserTaken JOIN FRIENDS_WITH
+                WHERE Friend1Name = UserName AND Friend1DNum = DNum);
+                '''
+        USgFrenq = '''CREATE VIEW USgFrenz AS
+                (SELECT (UserName, DNum, SgUrl, Points, NumUsers, UserSgContrib, UserSgRating, COUNT(DISTINCT(FrName, FrDNum)) AS NumFrenz
+                FROM UFrenz NATURAL JOIN FinUserSG
+                GROUP BY (UserName, DNum, SgUrl) );
+                '''
+        Finalq = '''CREATE VIEW Final AS
+                (SELECT UserName, DNum, AVG(SgUrl) AS AvgGroups, Points, AVG(UserSgContrib) AS AvgContrib, AVG(UserSgRating) AS AvgSgRating, Avg(NumFrenz) AS AvgFrenz
+                FROM UsgFrenz GROUP BY (UserName, DNum));
+                '''
+        cc.execute(perfq)
+        cc.execute(rateq)
+        cc.execute(scoreq)
+        cc.execute(sguserq)
+        cc.execute(sgq)
+        cc.execute(USGq)
+        cc.execute(FinUSGq)
+        cc.execute(Uq)
+        cc.execute(UFrenq)
+        cc.execute(USgFrenq)
+        cc.execute(Finalq)
+        result = cc.fetchall()
+        print("Overall Analysis Table:")
+        table_format(result)
+        
+        num_users = cc.execute.rowcount
+        num_top = num_users / 2
+        num_bottom = num_users - num_top
+
+        print("Top Half Stats")
+        toptempq = '''CREATE VIEW TempTOP AS
+                    (SELECT * FROM Final ORDER BY Points DESC LIMIT %d);
+                    ''' % (num_top)
+        topq = '''CREATE VIEW FinalTOP AS
+                (SELECT UserName, DNum, AVG(AvgGroups) AS AvgGroupsT, AVG(Points) AS AvgPointsT,
+                AVG(AvgContrib) AS AvgContribT, AVG(AvgRating) AS AvgRatingT, AVG(AvgFrenz) AS AvgFrenzT
+                FROM Final GROUP BY (UserName, DNum));
+                '''
+        cc.execute(toptempq)
+        cc.execute(topq)
+        resulttop = cc.fetchall()
+        table_format(resulttop)
+        
+        print("Bottom Half Stats")
+        bottomtempq = '''CREATE VIEW TempBOTTOM AS
+                    (SELECT * FROM Final ORDER BY Points LIMIT %d);
+                    ''' % (num_bottom)
+        bottomq = '''CREATE VIEW FinalBOTTOM AS
+                (SELECT UserName, DNum, AVG(AvgGroups) AS AvgGroupsB, AVG(Points) AS AvgPointsB,
+                AVG(AvgContrib) AS AvgContribB, AVG(AvgRating) AS AvgRatingB, AVG(AvgFrenz) AS AvgFrenzB
+                FROM Final GROUP BY (UserName, DNum));
+                '''
+        cc.execute(bottomtempq)
+        cc.execute(bottomq)
+        resultbottom = cc.fetchall()
+        table_format(resultbottom)

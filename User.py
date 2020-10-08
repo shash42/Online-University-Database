@@ -209,10 +209,10 @@ class User:
     def admin_studygroup(self):
         sgquery = "SELECT SgUrl FROM MEMBER_OF WHERE UserSgRole = 'Admin' AND UserName = '%s' AND DNum = %d" % (self.current_user[0], self.current_user[1])
         self.sesh.cursor.execute(sgquery)
+        result = self.sesh.cursor.fetchall()
         if(self.sesh.cursor.rowcount==0):
             print("You are not an admin of any group :(")
             return
-        result = self.sesh.cursor.fetchall()
         print("You are an admin of %d study groups" % (self.sesh.cursor.rowcount))
         for sg in result:
             print(sg["SgUrl"])
@@ -319,11 +319,13 @@ class User:
         try:
             os.system("clear")
             print("User List: ")
-            userquery = "SELECT UserName, DNum FROM MEMBER_OF WHERE SgUrl = '%s'" % (sg_url)
+            userquery = "SELECT UserName, DNum, UserSgRole FROM MEMBER_OF WHERE SgUrl = '%s'" % (sg_url)
             self.sesh.cursor.execute(userquery)
             result = self.sesh.cursor.fetchall()
             table_format(result)
             
+            roles = ["Member", "Admin"]
+            roleidx = 0
             flag = 0
             while(flag==0):
                 username = input("Enter username: ")
@@ -331,6 +333,8 @@ class User:
                 for r in result:
                     if(r["UserName"] == username and r["DNum"] == dnum):
                         flag = 1
+                        if(r["UserSgRole"] == "Admin"):
+                            roleidx = 1
                 if(flag==0):
                     print("No such user in study group, try again!")
 
@@ -339,8 +343,16 @@ class User:
                 contrib = int(input("Contribution rating of user [1-10]: "))
             contribquery = "UPDATE MEMBER_OF SET UserSgContrib = %s WHERE SgUrl = '%s' AND UserName = '%s' AND DNum = %s;" 
             self.sesh.cursor.execute(contribquery, (contrib, sg_url, self.current_user[0], self.current_user[1]))
+
+            selection = 'X'
+            while(selection != 'Y' and selection != 'N'):
+                selection = input("Flip user role from %s to %s [Y/N]: " % (roles[roleidx], roles[1-roleidx]))
+            if(selection == 'Y'):
+                rolequery = "UPDATE MEMBER_OF SET UserSgRole = %s WHERE SgUrl = '%s' AND UserName = '%s' AND DNum = %s;"
+                self.sesh.cursor.execute(rolequery, (roles[1-roleidx], sg_url, self.current_user[0], self.current_user[1]))
+            
             self.sesh.cursor.connection.commit()
-        
+
         except Exception as e:
             print(e)
             ask_user_action(self.update_usercontrib)
@@ -354,10 +366,10 @@ class User:
         try:
             sgquery = "SELECT SgUrl FROM MEMBER_OF WHERE UserSgRole = 'Member' AND UserName = '%s' AND DNum = %d" % (self.current_user[0], self.current_user[1])
             self.sesh.cursor.execute(sgquery)
+            result = self.sesh.cursor.fetchall()
             if(self.sesh.cursor.rowcount==0):
                 print("You are not a member of any group :(")
                 return
-            result = self.sesh.cursor.fetchall()
             print("You are a member of %d study groups" % (self.sesh.cursor.rowcount))
             for sg in result:
                 print(sg["SgUrl"])
@@ -394,12 +406,12 @@ class User:
             #[TODO:] Validate if CourseID and Lang exist in DB or Display possible choices
             coursequery = "SELECT DISTINCT `CourseID` FROM `PARTICIPATES_IN` WHERE `SgUrl` = '%s'" % sg_url
             self.sesh.cursor.execute(coursequery)
-            course_count = self.sesh.cursor.rowcount
             course_sg = self.sesh.cursor.fetchall()
+            course_count = self.sesh.cursor.rowcount
             langquery = "SELECT DISTINCT `LangCode` FROM `PARTICIPATES_IN` WHERE `SgUrl` = '%s'" % sg_url
             self.sesh.cursor.execute(langquery)
-            lang_count = self.sesh.cursor.rowcount
             lang_sg = self.sesh.cursor.fetchall()
+            lang_count = self.sesh.cursor.rowcount
             lang_new_flag = 1
             course_new_flag = 1
 
