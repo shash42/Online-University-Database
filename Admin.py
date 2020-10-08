@@ -392,9 +392,9 @@ class Admin:
                     (SELECT * FROM Final ORDER BY Points DESC LIMIT %s);"
 
         topq = "CREATE VIEW FinalTOP AS \
-                (SELECT UserName, DNum, AVG(CountGroups) AS AvgGroupsT, AVG(Points) AS AvgPointsT, \
+                (SELECT AVG(CountGroups) AS AvgGroupsT, AVG(Points) AS AvgPointsT, \
                 AVG(AvgContrib) AS AvgContribT, AVG(AvgSgRating) AS AvgRatingT, AVG(AvgFrenz) AS AvgFrenzT \
-                FROM Final GROUP BY UserName, DNum);"
+                FROM TempTOP);"
 
         cc.execute(toptempq, num_top)
         cc.execute(topq)
@@ -406,9 +406,9 @@ class Admin:
         bottomtempq = "CREATE VIEW TempBOTTOM AS \
                     (SELECT * FROM Final ORDER BY Points LIMIT %s);"
         bottomq = "CREATE VIEW FinalBOTTOM AS \
-                (SELECT UserName, DNum, AVG(CountGroups) AS AvgGroupsB, AVG(Points) AS AvgPointsB, \
+                (SELECT AVG(CountGroups) AS AvgGroupsB, AVG(Points) AS AvgPointsB, \
                 AVG(AvgContrib) AS AvgContribB, AVG(AvgSgRating) AS AvgRatingB, AVG(AvgFrenz) AS AvgFrenzB \
-                FROM Final GROUP BY UserName, DNum);"
+                FROM TempBOTTOM);"
 
         cc.execute(bottomtempq, num_bottom)
         cc.execute(bottomq)
