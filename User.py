@@ -81,7 +81,8 @@ class User:
                     group by SgUrl;"
         self.sesh.cursor.execute(sg_query)
         result = self.sesh.cursor.fetchall()
-        univutil.table_format(result)
+        if(univutil.table_format(result) == 0):
+            return 0
         return result
 
 
@@ -132,13 +133,13 @@ class User:
             os.system("clear")
             print("1. Befriend")
             print("2. Search Friend Details by Name")
-            print("5. Exit")
+            print("3. Exit")
             choice = input("Enter choice number: ")
             if(choice == "1"):
                 self.befriend()
             elif(choice == "2"):
                 self.show_friends_details()
-            elif(choice == "5"):
+            elif(choice == "3"):
                 break
             else:
                 print("Invalid choice")
@@ -150,17 +151,16 @@ class User:
             print("1. Enroll")
             print("2. Show offerings")
             print("3. Interests Update")
-            print("5. Exit")
+            print("4. Exit")
             choice = input("Enter choice number: ")
             if(choice == "1"):
                 self.enroll()
             elif(choice == "2"):
-                self.unenroll()
-            elif(choice == "3"):
                 self.show_offerings()
-            elif(choice == "4"):
+                input()
+            elif(choice == "3"):
                 self.update_interest()
-            elif(choice == "5"):
+            elif(choice == "4"):
                 break
             else:
                 print("Invalid choice")
@@ -194,13 +194,13 @@ class User:
             os.system("clear")
             print("1. Rate your study groups")
             print("2. Administrate study groups")
-            print("5. Exit")
+            print("3. Exit")
             choice = input("Enter choice number: ")
             if(choice == "1"):
                 self.rate_sg()
             elif(choice == "2"):
                 self.admin_studygroup()
-            elif(choice == "5"):
+            elif(choice == "3"):
                 break
             else:
                 print("Invalid option")
@@ -236,7 +236,7 @@ class User:
             print("3. Add options (course/languages)")
             print("4. Change status")
             print("5. Update User Contribution")
-            print("9. Exit")
+            print("6. Exit")
             selection = print("Choose one of the above options: ")
             if(selection == "1"):
                 self.create_pin(sg_url)
@@ -248,7 +248,7 @@ class User:
                 self.change_sgstatus(sg_url)
             elif(selection == "5"):
                 self.update_usercontrib(sg_url)
-            elif(selection == "9"):
+            elif(selection == "6"):
                 return
             else:
                 return "Invalid choice. Please try again!"
@@ -265,6 +265,9 @@ class User:
             print("Available study groups for this course:")
             values = self.showSgForCourse(courseid)
             new_sg = 'X'
+            if(values == 0):
+                print("No study groups for this course.")
+                new_sg = "N"
             while(new_sg != 'N' and new_sg != 'E'):
                 new_sg = input("Do you want to create your own study group (N) or join an existing one [E]: ")
             if(new_sg == "E"):
@@ -274,13 +277,18 @@ class User:
 
             if(new_sg == 'N'):
                 sg = input("Study Group URL: ")
-                sgcreate = "INSERT INTO STUDY_GROUP (`SgUrl`) VALUES (%s);"
+                while(True):
+                    try:
+                        sgcreate = "INSERT INTO STUDY_GROUP (`SgUrl`) VALUES (%s);"
+                    except:
+                        print("Invalid study group URL. It might already exist.")
+                        input()
+                    break
                 self.sesh.cursor.execute(sgcreate, sg)
             sgquery = "INSERT IGNORE INTO `MEMBER_OF` (UserName, DNum, SgUrl, UserSgRole) VALUES (%s, %s, %s, %s);"
             self.sesh.cursor.execute(sgquery, (self.current_user[0], self.current_user[1], sg, "Admin"))
             print("Created a new study group succesfully!")
                 
-            
             #[TODO:] We are not showing languages of each study group, and user might not want any of those list, but is stuck in while() here.
             print("Available languages for this study group")
             langquery = "SELECT DISTINCT LangCode FROM PARTICIPATES_IN WHERE SgUrl = '%s'" % (sg)
@@ -311,7 +319,7 @@ class User:
 
         except Exception as e:
             print(e)
-            ask_user_action(self.enroll)
+            univutil.ask_user_action(self.enroll)
         
         return   
 
@@ -343,7 +351,7 @@ class User:
         
         except Exception as e:
             print(e)
-            ask_user_action(self.update_usercontrib)
+            univutil.ask_user_action(self.update_usercontrib)
 
         else:
             print("Contribution updated succesfully!")
@@ -383,7 +391,7 @@ class User:
 
         except Exception as e:
             print(e)
-            ask_user_action(self.rate_sg)
+            univutil.ask_user_action(self.rate_sg)
     
     def addoption_studygroup(self, sg_url):
         print("Choose a Course and it's corresponding discussion language! Atleast one must be new for the study group")
@@ -705,7 +713,7 @@ class User:
         
         except Exception as e:
             print(e)
-            ask_user_action(self.view_user_posts)
+            univutil.ask_user_action(self.view_user_posts)
     
 
     def befriend(self):
@@ -723,8 +731,9 @@ class User:
                         
                         
             
-            query = "INSERT INTO `FRIENDS_WITH` (Friend1Name,Friend1DNum,Friend2Name,Friend2DNum) VALUES ('%s',%d,'%s',%d)" % (attributes["Friend2Name"],attributes["Friend2DNum"],self.current_user[0],self.current_user[1])
-            self.sesh.cursor.execute(query)
+            query = "INSERT INTO `FRIENDS_WITH` (Friend1Name,Friend1DNum,Friend2Name,Friend2DNum) VALUES (%s,%s,%s,%s)" 
+            self.sesh.cursor.execute(query, (attributes["Friend2Name"],attributes["Friend2DNum"],self.current_user[0],self.current_user[1]))
+            self.sesh.cursor.execute(query, (self.current_user[0],self.current_user[1], attributes["Friend2Name"],attributes["Friend2DNum"]))
             self.sesh.connection.commit()
         
         except Exception as e:    
@@ -735,9 +744,15 @@ class User:
 
     def update_interest(self):
         try:
-            SubName = ""
-            while(SubName == ""):
-                SubName = input("Subject Name: ")
+            values = self.sesh.see_all("SUBJECT")
+            choice = input("Pick subject index: ")
+            while(True):
+                try:
+                    choice = int(choice)
+                    SubName = values[choice-1]['SubName']
+                    break
+                except:
+                    print("Error. Invalid index")
             InterestType = ""
             while(InterestType == ""):
                 InterestType = input('Modified Interest Type["Research" ,"Professional" , "Major" ,"Minor" ,"Casual"]: ')

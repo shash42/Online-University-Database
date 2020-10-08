@@ -269,4 +269,39 @@ class Admin:
         return
     
     def stat1(self):
-        sql_query = "SELECT "
+        sql_users = "SELECT UserName, DNum FROM USER"
+        self.sesh.cursor.execute(sql_users)
+        result = self.sesh.cursor.fetchall()
+        if(univutil.table_format(result) == 0):
+            print("No users")
+            input()
+            return
+        choice = input("Select index number: ")
+        while(True):
+            try:
+                username, dnum = result[int(choice)-1]["UserName"], result[int(choice)-1]["DNum"]
+                break
+            except:
+                print("Invalid index")
+                input()
+                return
+        self.sesh.cursor.execute("DROP VIEW IF EXISTS FRIENDS;")
+        self.sesh.cursor.execute("DROP VIEW IF EXISTS SUBS;")
+        self.sesh.cursor.execute("DROP VIEW IF EXISTS FRIENDS_SUBS;")
+        self.sesh.cursor.execute("DROP VIEW IF EXISTS COMMON_INTS;")
+        self.sesh.cursor.execute("DROP VIEW IF EXISTS COMMON_SGS;")
+        self.sesh.cursor.execute("DROP VIEW IF EXISTS SgUrls;")
+        self.sesh.cursor.execute("DROP VIEW IF EXISTS FRIENDS_SG;")
+
+        self.sesh.cursor.execute("CREATE VIEW FRIENDS AS (SELECT Friend2Name, Friend2DNum FROM FRIENDS_WITH WHERE Friend1Name = %s AND Friend2DNum = %s);", (username, dnum))
+        self.sesh.cursor.execute("CREATE VIEW SUBS AS (SELECT UserName, DNum, SubName FROM HAS_INTEREST_IN WHERE UserName = %s AND DNum = %s);", (username, dnum))
+        self.sesh.cursor.execute("CREATE VIEW SgUrls AS (SELECT UserName, DNum, SgUrl FROM PARTICIPATES_IN WHERE UserName = %s AND DNum = %s);", (username, dnum))
+        self.sesh.cursor.execute("CREATE VIEW FRIENDS_SUBS AS (SELECT UserName, DNum, SubName from HAS_INTEREST_IN JOIN FRIENDS ON UserName = Friend2Name and DNum = Friend2DNum);")
+        self.sesh.cursor.execute("CREATE VIEW FRIENDS_SG AS (SELECT UserName, DNum, SgUrl from PARTICIPATES_IN JOIN FRIENDS ON UserName = Friend2Name and DNum = Friend2DNum);")
+        self.sesh.cursor.execute("CREATE VIEW COMMON_INTS AS (SELECT UserName, DNum, Count(*) as CommonInterests FROM FRIENDS_SUBS WHERE SubName in (SELECT SubName FROM FRIENDS_SUBS) GROUP BY UserName, DNum);")
+        self.sesh.cursor.execute("CREATE VIEW COMMON_SGS AS (SELECT UserName, DNum, Count(*) as CommonStudyGroups FROM FRIENDS_SUBS WHERE SubName in (SELECT SubName FROM FRIENDS_SUBS) GROUP BY UserName, DNum);")
+        self.sesh.cursor.execute("SELECT COMMON_INTS.UserName, COMMON_INTS.DNum, CommonInterests, CommonStudyGroups from COMMON_INTS JOIN COMMON_SGS ON COMMON_INTS.UserName = COMMON_SGS.UserName and COMMON_INTS.DNum = COMMON_SGS.DNum;")
+        result = self.sesh.cursor.fetchall()
+        if(univutil.table_format(result) == 0):
+            print("Nothing found.")
+        input()

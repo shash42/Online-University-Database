@@ -20,21 +20,27 @@ class Session:
 
     def login_screen(self):
         while True:
-            os.system("clear")
-            print("Hello!")
-            print("1. Login")
-            print("2. Sign Up")
-            print("3. Exit")
+            if(self.user.current_user == [None, None]):
+                os.system("clear")
+                print("Hello!")
+                print("1. Login")
+                print("2. Sign Up")
+                print("3. Exit")
 
-            selection = input()
-            if(selection == "1"):
-                self.login()
-            elif(selection == "2"):
-                self.signup()
-            elif(selection == "3"):
-                break
+                selection = input()
+                if(selection == "1"):
+                    self.login()
+                elif(selection == "2"):
+                    self.signup()
+                elif(selection == "3"):
+                    break
+                else:
+                    print("Invalid option")
             else:
-                print("Invalid option")
+                done = self.user_screen()
+                if(done == -1):
+                    self.user.current_user = [None, None]
+                    return
 
     def login(self):
         os.system("clear")
@@ -53,7 +59,6 @@ class Session:
                     print("Sucessfully logged in")
                     input()
                     self.user.current_user = [UName,DNumber]
-                    self.user_screen()
                 else:
                     print("Authentication failed")
                     input()
@@ -71,7 +76,7 @@ class Session:
             print("2. Manage Courses/Interests")
             print("3. Manage Study Groups")
             print("4. Manage Posts")
-            print("9. EXIT")
+            print("5. EXIT")
             choice = input()
             if(choice == "1"):
                 self.user.manage_connections()
@@ -81,11 +86,10 @@ class Session:
                 self.user.manage_studygroup()
             elif(choice == "4"):
                 self.user.manage_posts()
-            elif(choice == "9"):
-                break
+            elif(choice == "5"):
+                return -1
             else:
                 print("Invalid choice")
-        
         return
 
     def admin_screen_main(self):
@@ -163,20 +167,20 @@ class Session:
     
         if(not(refine)):
             self.see_all("COURSE")
-            input()
         elif(refine == "1"):
             values = self.see_all("LANGUAGE")
             choice = input("Pick language index: ")
-            try:
-                choice = int(choice)
-                lang_code = values[choice-1]['LangCode']
-            except:
-                print("Error")
+            while True:
+                try:
+                    choice = int(choice)
+                    lang_code = values[choice-1]['LangCode']
+                    break
+                except:
+                    print("Invalid index.")  
             sql_query = "SELECT CourseName, LangCode FROM `COURSE` NATURAL JOIN `USED_FOR` WHERE LangCode = %s"
             self.cursor.execute(sql_query, lang_code)
             result = self.cursor.fetchall()
             table_format(result)
-            input()
 
         elif(refine == "2"):
             values = self.see_all("SUBJECT")
@@ -188,7 +192,6 @@ class Session:
                 self.cursor.execute(sql_query, subname)
                 result = self.cursor.fetchall()
                 table_format(result)
-                input()
             except:
                 print("Error")
             
@@ -197,14 +200,16 @@ class Session:
             sql_query = "SELECT * FROM `COURSE` WHERE CourseName LIKE '%{}%'"        
             self.cursor.execute(sql_query.format(choice))
             result = self.cursor.fetchall()
+            if(result == 0):
+                print("None found.")
             table_format(result)
-            input()
 
     def admin_stats_screen(self):
         while(True):
             os.system("clear")
-            print("1. Average user performance with friends in course")
-            print("2. Back")
+            print("1. Meaningful Connections")
+            print("2. Thing")
+            print("3. Back")
             choice = input()
             if(choice == "1"):
                 self.admin.stat1()
