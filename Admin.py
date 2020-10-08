@@ -20,25 +20,28 @@ class Admin:
             dob = input("Date of Birth (YYYY-MM-DD))*: ")
             email = input("Email*: ")
             password = input("Password*: ")
-            sql = "INSERT INTO `USER` values ('%s',%d, '%s', '%s', '%s', '%s', '%s','%s');"
+            sql = "INSERT INTO `USER` values (%s, %s, %s, %s, %s, %s, %s, %s);"
             self.sesh.cursor.execute(sql, (username,dnum,fname,mname,lname,dob,email,password))
-            
+
+            values = self.sesh.see_all("LANGUAGE")
             numberOfLanguagesKnown = 0
             while(numberOfLanguagesKnown <= 0):
                 numberOfLanguagesKnown = int(input("Enter Number of languages known[atleast one]: "))
             for _ in range(numberOfLanguagesKnown):
-                self.add_languageKnown(username,dnum)
+                self.add_languageKnown(username,dnum, values)
+
+            values = self.sesh.see_all("SUBJECT")
             numberOfSubjectInterest = 0
             while numberOfSubjectInterest <= 0:
                 numberOfSubjectInterest = int(input("Enter Number of Subject Interest[atleast one]: "))
             for _ in range(numberOfSubjectInterest):
-                self.add_subjectInterest(username,dnum)
+                self.add_subjectInterest(username,dnum, values)
             self.sesh.connection.commit()
-            print("Registered succesfully! Username: %s DNum: %d".format(username, dnum))
+            print(f'Registered succesfully! Username: {username} DNum: {dnum}')
             input()
 
         except Exception as e:
-            ##print(e)
+            print(e)
             univutil.ask_user_action(self.add_user)
 
         return "Added user"
@@ -216,44 +219,53 @@ class Admin:
             univutil.ask_user_action(self.add_language)
 
     # [TODO:] CHECK THESE TWO LMAO
-    def add_subjectInterest(self,username,dnum):
-        try:
-            SubName = ""
-            while(SubName == ""):
-                SubName = input("Subject Name: ")
-            InterestType = ""
-            while(InterestType == ""):
-                InterestType = input('Interest Type["Research" ,"Professional" , "Major" ,"Minor" ,"Casual"]: ')
-                if InterestType not in ["Research" ,"Professional" , "Major" ,"Minor" ,"Casual"]:
-                    InterestType = ""
-            query = "INSERT INTO `HAS_INTEREST_IN` VALUES ('%s',%d,'%s','%s')" %(username,dnum,SubName,InterestType)
-            self.sesh.cursor.execute(query)
+    def add_subjectInterest(self,username,dnum, values):
+        SubName = ""
+        choice = input("Pick subject index: ")
+        while(True):
+            try:
+                choice = int(choice)
+                SubName = values[choice-1]['SubName']
+                break
+            except:
+                print("Error. Invalid index")
+        InterestType = ""
+        while(InterestType == ""):
+            InterestType = input('Interest Type ["1. Research" ,"2. Professional" , "3. Major" ,"4. Minor" ,"5. Casual"]: ')
+            if InterestType not in ["1","2","3","4","5"]:
+                InterestType = ""
+            InterestType = ["Research" ,"Professional" , "Major" ,"Minor" ,"Casual"][int(InterestType)-1]
+        query = "INSERT INTO `HAS_INTEREST_IN` VALUES ('%s',%d,'%s','%s')" %(username,dnum,SubName,InterestType)
+        self.sesh.cursor.execute(query)
             
-        except Exception as e:
-            #print(e)
-            print("Try again")
-            self.add_subjectInterest(username, dnum)
+        # except Exception as e:
+        #     #print(e)
+        #     print("Try again")
+        #     self.add_subjectInterest(username, dnum)
 
-    def add_languageKnown(self,username,dnum):
-        try:
-            LangCode = ""
-            while(LangCode == ""):
-                LangCode = input("Language Code[3 characters]: ")
-                if(len(LangCode) != 3):
-                    LangCode = ""
-            Fluency = ""
-            while(Fluency == ""):
-                Fluency = input('Fluency["Elementary" ,"Limited Working" , "Professional Working" ,"Native"]: ')
-                if Fluency not in ["Elementary" ,"Limited Working" , "Professional Working" ,"Native"]:
-                    Fluency = ""
-            query = "INSERT INTO `KNOWS` VALUES ('%s',%d,'%s','%s')" %(username,dnum,LangCode,Fluency)
-            print(query)
-            self.sesh.cursor.execute(query)
+    def add_languageKnown(self,username,dnum, values):
+        choice = input("Pick language index: ")
+        while(True):
+            try:
+                choice = int(choice)
+                LangCode = values[choice-1]['LangCode']
+                break
+            except:
+                print("Error. Invalid index")
+        Fluency = ""
+        while(Fluency == ""):
+            Fluency = input('Fluency["1. Elementary" ,"2. Limited Working" , "3. Professional Working" ,"4. Native"]: ')
+            if Fluency not in ["1", "2", "3", "4"]:
+                Fluency = ""
+            Fluency = ["Elementary" ,"Limited Working" , "Professional Working" ,"Native"][int(Fluency)-1]
+        query = "INSERT INTO `KNOWS` VALUES ('%s',%d,'%s','%s')" %(username,dnum,LangCode,Fluency)
+        print(query)
+        self.sesh.cursor.execute(query)
             
-        except Exception as e:
-            #print(e)
-            print("Try again")
-            self.add_languageKnown(username, dnum)
+        # except Exception as e:
+        #     #print(e)
+        #     print("Try again")
+        #     self.add_languageKnown(username, dnum)
 
         return
 
