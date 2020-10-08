@@ -132,7 +132,7 @@ class User:
             print("1. Create Post")
             print("2. Edit Post")
             print("3. Delete Post")
-            print("4. View Post of User")
+            print("4. View Posts of User")
             print("5. Exit")
             choice = input("Enter choice number: ")
             if(choice == "1"):
@@ -142,8 +142,7 @@ class User:
             elif(choice == "3"):
                 self.delete_post()
             elif(choice == "4"):
-                # [TODO:] Optionally implement
-                print("Not implemented")
+                self.view_user_posts()
             elif(choice == "5"):
                 break
             else:
@@ -213,8 +212,6 @@ class User:
                 return
             else:
                 return "Invalid choice. Please try again!"
-
-
 
     def enroll(self): # This would be a insertion into the quarternary relationship along with creating study_group if reqd.
         try:
@@ -301,7 +298,7 @@ class User:
 
         else:
             print("Contribution updated succesfully!")
-            
+
         return
 
     def rate_sg(self):
@@ -631,6 +628,19 @@ class User:
         
         return
             
+    def view_user_posts(self):
+        try:
+            username = input("Enter UserName: ")
+            dnum = int(input("Enter DNum: "))
+            query = "SELECT PostTitle, PostContent, TimeStamp FROM POST WHERE UserName = '%s' AND DNum = %d" % (username, dnum)
+            self.sesh.cursor.execute(query)
+            result = self.sesh.cursor.fetchall()
+            table_format(result)
+        
+        except Exception as e:
+            print(e)
+            ask_user_action(self.view_user_posts)
+    
 
     def befriend(self):
         try:
