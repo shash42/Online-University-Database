@@ -414,15 +414,18 @@ class User:
 
     def make_post(self):
         try:
+            query = "SELECT COUNT(*) FROM `POST` WHERE UserName=%s AND DNum = %s"
+            self.sesh.cursor.execute(query, (self.current_user[0], self.current_user[1]))
+            post_number = self.sesh.cursor.fetchone()["COUNT(*)"]
+
             attrP = {
-                "Post Number" : "", # [TODO:] Generate post_number based on no. of posts made by the username+dnum
                 "Post Title" : "",
                 "Post Content" : ""
             }
             for attribute in attrP:
                 while(attrP[attribute]==""):
                     attrP[attribute] = input(attribute+": ")
-            
+
             post_type = ""
             while(post_type!="Review" and post_type!="Blog"):
                 post_type = input("Type [Review/Blog]: ")
@@ -438,11 +441,11 @@ class User:
                         attrR[attribute] = input(attribute+": ")
                 sql += "(`UserName`, `DNum`, `PostNumber`, `PostTitle`, `PostContent`, "
                 sql += "`Type`, `CourseID`, `ReviewRating`) VALUES ( %s, %s, %s, %s, %s, %s, %s, %s );"
-                self.sesh.cursor.execute(sql, (self.current_user[0], self.current_user[1], attrP["Post Number"], attrP["Post Title"],
+                self.sesh.cursor.execute(sql, (self.current_user[0], self.current_user[1], post_number, attrP["Post Title"],
                                     attrP["Post Content"], post_type, attrR["CourseID"], attrR["Rate course [1-10]"]))
             else:
                 sql += "(`UserName`, `DNum`, `PostNumber`, `PostTitle`, `PostContent`, `Type`) VALUES ( %s, %s, %s, %s, %s, %s );"
-                self.sesh.cursor.execute(sql, (self.current_user[0], self.current_user[1], attrP["Post Number"], attrP["Post Title"],
+                self.sesh.cursor.execute(sql, (self.current_user[0], self.current_user[1], post_number, attrP["Post Title"],
                                     attrP["Post Content"], post_type))
             self.sesh.connection.commit()
 
@@ -464,9 +467,10 @@ class User:
                 return
             print(num_posts, "posts currently exist!")
             
+            univutil.table_format(result)
             post_num = num_posts
             while(post_num >= num_posts):
-                post_num = int(input("Enter the post number to delete (0-indexed): "))
+                post_num = int(input("Enter the post number to delete: "))
             
             print("Are you sure you want to delete the following post: ")
             print("Post Title: ", result[post_num]["PostTitle"])
