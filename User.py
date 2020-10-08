@@ -52,7 +52,7 @@ class User:
 
     def manage_connections(self):
         while(True):
-            #os.system("clear")
+            os.system("clear")
             print("1. Befriend")
             print("2. Search for users")
             print("3. Exit")
@@ -69,7 +69,7 @@ class User:
 
     def manage_courses(self):
         while(True):
-            #os.system("clear")
+            os.system("clear")
             print("1. Enroll")
             print("2. Show offerings")
             print("3. Interests Update")
@@ -90,7 +90,7 @@ class User:
 
     def manage_posts(self):
         while(True):
-            #os.system("clear")
+            os.system("clear")
             print("1. Create Post")
             print("2. Edit Post")
             print("3. Delete Post")
@@ -113,7 +113,7 @@ class User:
 
     def manage_sg(self):
         while(True):
-            #os.system("clear")
+            os.system("clear")
             print("1. Rate your study groups")
             print("2. Administrate study groups")
             print("3. Exit")
@@ -257,7 +257,7 @@ class User:
 
     def update_usercontrib(self, sg_url):
         try:
-            #os.system("clear")
+            os.system("clear")
             print("User List: ")
             userquery = "SELECT UserName, DNum, UserSgRole FROM MEMBER_OF WHERE SgUrl = '%s'" % (sg_url)
             self.sesh.cursor.execute(userquery)
@@ -657,7 +657,7 @@ class User:
         return
     
     def show_offerings(self):
-        #os.system("clear")
+        os.system("clear")
         print("1. Courses")
         print("2. Subjects")
         choice = input()

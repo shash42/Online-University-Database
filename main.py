@@ -21,7 +21,7 @@ class Session:
     def login_screen(self):
         while True:
             if(self.user.current_user == [None, None]):
-                #os.system("clear")
+                os.system("clear")
                 print("Hello!")
                 print("1. Login")
                 print("2. Sign Up")
@@ -43,7 +43,7 @@ class Session:
                     return
 
     def login(self):
-        #os.system("clear")
+        os.system("clear")
         try:
             UName = input('UserName: ')
             DNumber = int(input('DNumber: '))
@@ -71,7 +71,7 @@ class Session:
     
     def user_screen(self):
         while True:
-            #os.system("clear")
+            os.system("clear")
             print("1. Manage Connections")
             print("2. Manage Courses/Interests")
             print("3. Manage Study Groups")
@@ -93,10 +93,10 @@ class Session:
         return
 
     def admin_screen_main(self):
-        #os.system('clear')
+        os.system('clear')
         return_msg = "Hello Admin!"
         while True:
-            #os.system("clear")
+            os.system("clear")
             print(return_msg)
             print("1. Add User")
             print("2. Manage Courses")
@@ -109,7 +109,7 @@ class Session:
             if(selection == "1"):
                 return_msg = self.admin.add_user()
             elif(selection == "2"):
-                #os.system("clear")
+                os.system("clear")
                 print("1. Add Course")
                 print("2. Remove Course")
                 print("3. Back")
@@ -136,7 +136,7 @@ class Session:
     def see_available(self, table):
         refine = False
         while(True):
-            #os.system("clear")
+            os.system("clear")
             print("1. See all")
             print("2. Search by")
             print("3. Back")
@@ -144,7 +144,7 @@ class Session:
             if(choice == "1"):
                 break
             elif(choice == "2"):
-                #os.system("clear")
+                os.system("clear")
                 print("1. Language")
                 print("2. Subject")
                 print("3. Name")
@@ -206,7 +206,7 @@ class Session:
 
     def admin_stats_screen(self):
         while(True):
-            #os.system("clear")
+            os.system("clear")
             print("1. Meaningful Connections")
             print("2. Leaning Analysis")
             print("3. Back")
@@ -242,7 +242,7 @@ class Session:
         return resultset['COUNT(*)']
 
     def main_screen(self):
-        #os.system("clear")
+        os.system("clear")
         print("Welcome to Open Source University")
         print("1. Admin")
         print("2. User")
