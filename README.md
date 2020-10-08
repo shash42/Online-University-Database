@@ -15,7 +15,26 @@ A Menu-based Command Line Interface Database system to support a social networki
 
 <h2> Usage </h2>
 
+<h4> Requirements </h4>
 
+To run this on your system you need:
+1. SQL Server
+2. Python Module - PyMySQL
+
+<h4> Installation </h4>
+
+1. To install MySQL in Windows use this link <https://dev.mysql.com/doc/mysql-installation-excerpt/8.0/en/windows-install-archive.html>   
+    For Ubuntu use this link <https://www.digitalocean.com/community/tutorials/how-to-install-mysql-on-ubuntu-18-04>   
+    For MacOS use this link <https://database.guide/how-to-install-sql-server-on-a-mac/>
+2. For Python Libraries run these commands on your terminal-    
+   `pip3 install pymysql`     
+
+<h4> Execution </h4>
+
+2. Make sure the user temp is created and exists with all privileges and along with an empty database called UNIVERSITY in your SQL server before running these commands.
+2. Loading: <code>mysql -u <em>temp</em> UNIVERSITY < definition.sql</code>
+
+3. Use the command `python main.py` to start the CLI.
 
 <h2> Implemented Features </h2>
 
@@ -61,19 +80,20 @@ But more importantly, you can create analysis reports using the rich variety of 
 
 The folder src contains 4 .py files, main.py, User.py, Admin.py and univutil.py. User.py contains the User class, which has functions for the User view. Similarly, Admin has the Admin class with functions for Admin view. main.py is the caller function that combines these together and prints the initial menus. univutil.py just contains some utility functions needed by multiple files. <br>
 
-The folder References contains the work of the older phases for reference. This shows the progress of the project over time. CHANGELOG.md describes the changes from Phase 3 to 4 (current). definition.sql contains the definition of the UNIVERSITY schema and dummydata.sql contains some basic test data for exemplifying the working of our database system. <br>
+The folder References contains the work of the older phases for reference. This shows the progress of the project over time. CHANGELOG.md describes the changes from Phase 3 to 4 (current). definition.sql contains the definition of the UNIVERSITY schema for readability. data.sql loads the definition with some basic test data for exemplifying the working of our database system. <br>
 
 <h2> Compliance Report </h2>
 
-We have implemented a super-set of the functional requirements described in our Phase 1 document. We had to make some changes, which are mentioned in CHANGELOG.md
+We have implemented a super-set of the functional requirements described in our Phase 1 document. We had to make some changes, which are mentioned in CHANGELOG.md. Apart from the required functionality, we have also used triggers and views extensively. This section describes in detail the exact function where the requirements were met in different ways.
 
 <h4> Selection </h4>
 
 <ol> 
     <li> Show subjects available - User.py/show_subject() </li>
-    <li> Show course offerings - </li>
+    <li> Show course offerings - User.py/show_offerings() and main.py/see_all()</li>
     <li> Display posts of a user - User.py/view_user_posts() </li>
 </ol>
+
 
 <h4> Projection </h4>
 
@@ -88,8 +108,6 @@ We have implemented a super-set of the functional requirements described in our 
     <li> Show role for user in a particular study group - User.py/update_usercontrib()</li>
     <li> Obtain status of a study group - User.py/change_sgstatus()</li>
 </ol>
-
-
 
 <h4> Aggregation </h4>
 
@@ -167,4 +185,4 @@ To show one possible way to quickly use this data, aggregate statistics of the a
 
 <h2> Conclusion </h2>
 
-Special thanks to our mentors Jaidev and Mallika for valuable feedback and clearing our doubts throughout the duration of the course. We hope you enjoy playing with our project (pls resist the urge to break it, we dont like injections :baby: :cry: ) a little more than what we can say for SQL.  
+Special thanks to our mentors Jaidev and Mallika for valuable feedback and clearing our doubts throughout the duration of the course. We hope you enjoy playing with our project (pls resist the urge to break it, we dont like injections :baby: :cry: ) a little more than what we can say for writing all this SQL :stuck_out_tongue:  
