@@ -8,7 +8,7 @@ class Admin:
 
     def add_user(self):
         try:
-            os.system('clear')
+            #os.system('clear')
             print("ADD NEW USER")
             username = input("Username*: ")
             dnum = self.sesh.get_number(username,"USER","UserName")
@@ -58,7 +58,7 @@ class Admin:
 
     def add_course(self):
         try:
-            os.system("clear")
+            #os.system("clear")
             print("ADD NEW COURSE")
             attributes = {"Course Name: ":"", 
                         "Course Org: ":"", 
@@ -308,8 +308,8 @@ class Admin:
         self.sesh.cursor.execute("CREATE VIEW SgUrls AS (SELECT UserName, DNum, SgUrl FROM PARTICIPATES_IN WHERE UserName = %s AND DNum = %s);", (username, dnum))
         self.sesh.cursor.execute("CREATE VIEW FRIENDS_SUBS AS (SELECT UserName, DNum, SubName from HAS_INTEREST_IN JOIN FRIENDS ON UserName = Friend2Name and DNum = Friend2DNum);")
         self.sesh.cursor.execute("CREATE VIEW FRIENDS_SG AS (SELECT UserName, DNum, SgUrl from PARTICIPATES_IN JOIN FRIENDS ON UserName = Friend2Name and DNum = Friend2DNum);")
-        self.sesh.cursor.execute("CREATE VIEW COMMON_INTS AS (SELECT UserName, DNum, Count(*) as CommonInterests FROM FRIENDS_SUBS WHERE SubName in (SELECT SubName FROM FRIENDS_SUBS) GROUP BY UserName, DNum);")
-        self.sesh.cursor.execute("CREATE VIEW COMMON_SGS AS (SELECT UserName, DNum, Count(*) as CommonStudyGroups FROM FRIENDS_SUBS WHERE SubName in (SELECT SubName FROM FRIENDS_SUBS) GROUP BY UserName, DNum);")
+        self.sesh.cursor.execute("CREATE VIEW COMMON_INTS AS (SELECT UserName, DNum, Count(*) as CommonInterests FROM FRIENDS_SUBS WHERE SubName in (SELECT SubName FROM SUBS) GROUP BY UserName, DNum);")
+        self.sesh.cursor.execute("CREATE VIEW COMMON_SGS AS (SELECT UserName, DNum, Count(*) as CommonStudyGroups FROM FRIENDS_SG WHERE SgUrl in (SELECT SgUrl FROM SgUrls) GROUP BY UserName, DNum);")
         self.sesh.cursor.execute("SELECT COMMON_INTS.UserName, COMMON_INTS.DNum, CommonInterests, CommonStudyGroups from COMMON_INTS JOIN COMMON_SGS ON COMMON_INTS.UserName = COMMON_SGS.UserName and COMMON_INTS.DNum = COMMON_SGS.DNum;")
         result = self.sesh.cursor.fetchall()
         if(univutil.table_format(result) == 0):
@@ -360,11 +360,11 @@ class Admin:
                 (SELECT UserName, DNum, Friend2Name AS FrName, Friend2DNum AS FrDNum FROM UserTaken JOIN FRIENDS_WITH \
                 WHERE Friend1Name = UserName AND Friend1DNum = DNum);"
         USgFrenq = "CREATE VIEW USgFrenz AS \
-                (SELECT UserName, DNum, SgUrl, Points, NumUsers, UserSgContrib, UserSgRating, COUNT(DISTINCT(CONCAT(FrName, FrDNum))) AS NumFrenz \
+                (SELECT UserName, DNum, SgUrl, AVG(Points) AS Points, NumUsers, UserSgContrib, UserSgRating, COUNT(DISTINCT(CONCAT(FrName, FrDNum))) AS NumFrenz \
                 FROM UFrenz NATURAL JOIN FinUserSG \
                 GROUP BY UserName, DNum, SgUrl);"
         Finalq = "CREATE VIEW Final AS \
-                (SELECT UserName, DNum, AVG(SgUrl) AS AvgGroups, Points, AVG(UserSgContrib) AS AvgContrib, AVG(UserSgRating) AS AvgSgRating, Avg(NumFrenz) AS AvgFrenz \
+                (SELECT UserName, DNum, COUNT(SgUrl) AS CountGroups, AVG(Points) as Points, AVG(UserSgContrib) AS AvgContrib, AVG(UserSgRating) AS AvgSgRating, Avg(NumFrenz) AS AvgFrenz \
                 FROM USgFrenz GROUP BY UserName, DNum);"
 
         cc.execute(perfq, courseid)
@@ -378,6 +378,7 @@ class Admin:
         cc.execute(UFrenq)
         cc.execute(USgFrenq)
         cc.execute(Finalq)
+        cc.execute("SELECT * FROM Final")
         result = cc.fetchall()
         print("Overall Analysis Table:")
         univutil.table_format(result)
@@ -391,12 +392,13 @@ class Admin:
                     (SELECT * FROM Final ORDER BY Points DESC LIMIT %s);"
 
         topq = "CREATE VIEW FinalTOP AS \
-                (SELECT UserName, DNum, AVG(AvgGroups) AS AvgGroupsT, AVG(Points) AS AvgPointsT, \
+                (SELECT UserName, DNum, AVG(CountGroups) AS AvgGroupsT, AVG(Points) AS AvgPointsT, \
                 AVG(AvgContrib) AS AvgContribT, AVG(AvgSgRating) AS AvgRatingT, AVG(AvgFrenz) AS AvgFrenzT \
                 FROM Final GROUP BY UserName, DNum);"
 
         cc.execute(toptempq, num_top)
         cc.execute(topq)
+        cc.execute("SELECT * FROM FinalTOP")
         resulttop = cc.fetchall()
         univutil.table_format(resulttop)
         
@@ -404,12 +406,13 @@ class Admin:
         bottomtempq = "CREATE VIEW TempBOTTOM AS \
                     (SELECT * FROM Final ORDER BY Points LIMIT %s);"
         bottomq = "CREATE VIEW FinalBOTTOM AS \
-                (SELECT UserName, DNum, AVG(AvgGroups) AS AvgGroupsB, AVG(Points) AS AvgPointsB, \
+                (SELECT UserName, DNum, AVG(CountGroups) AS AvgGroupsB, AVG(Points) AS AvgPointsB, \
                 AVG(AvgContrib) AS AvgContribB, AVG(AvgSgRating) AS AvgRatingB, AVG(AvgFrenz) AS AvgFrenzB \
                 FROM Final GROUP BY UserName, DNum);"
 
         cc.execute(bottomtempq, num_bottom)
         cc.execute(bottomq)
+        cc.execute("SELECT * FROM FinalBOTTOM")
         resultbottom = cc.fetchall()
         univutil.table_format(resultbottom)
 
