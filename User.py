@@ -102,25 +102,22 @@ class User:
         while(True):
             os.system("clear")
             print("1. Enroll")
-            print("2. Unenroll")
-            print("3. Show offerings")
-            print("4. Interests Update")
+            print("2. Show offerings")
+            print("3. Interests Update")
             print("5. Exit")
             choice = input("Enter chocie number: ")
             if(choice == "1"):
                 self.enroll()
-            elif(choice == 2):
-                self.unenroll()
-            elif(choice == 3):
+            elif(choice == "2"):
                 #[TODO:] Shift this to a function and complete it!
                 os.system("clear")
                 print("1. Courses")
                 print("2. Subjects")
                 choice = input()
                 self.see_available("COURSE")
-            elif(choice == 4):
+            elif(choice == "3"):
                 self.update_interest()
-            elif(choice == 5):
+            elif(choice == "5"):
                 break
             else:
                 print("Invalid choice")
@@ -260,10 +257,7 @@ class User:
             print(e)
             ask_user_action(self.enroll)
         
-        return
-
-    def unenroll(self): # [TODO:] This would be a deletion from the quarternary relationship
-        return    
+        return   
 
     def update_usercontrib(self, sg_url):
         try:
