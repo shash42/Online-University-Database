@@ -181,7 +181,7 @@ CREATE TABLE `TAKES` (
   `UserNumHours` int NOT NULL DEFAULT 0,
   `UserProgress` float NOT NULL DEFAULT 0,
   PRIMARY KEY (`UserName`, `DNum`, `CourseID`),
-  CONSTRAINT check_performance CHECK (`UserPerformance` >= 0 AND `UserPerformance` <= 7),
+  CONSTRAINT check_performance CHECK (`UserPerformance` >= 0 AND `UserPerformance` <= 10),
   CONSTRAINT check_progress CHECK (`UserProgress` >= 0 AND `UserProgress` <= 100)
 );
 

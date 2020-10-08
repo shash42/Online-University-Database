@@ -8,7 +8,7 @@ class Admin:
 
     def add_user(self):
         try:
-            #os.system('clear')
+            os.system('clear')
             print("ADD NEW USER")
             username = input("Username*: ")
             dnum = self.sesh.get_number(username,"USER","UserName")
@@ -58,7 +58,7 @@ class Admin:
 
     def add_course(self):
         try:
-            #os.system("clear")
+            os.system("clear")
             print("ADD NEW COURSE")
             attributes = {"Course Name: ":"", 
                         "Course Org: ":"", 
