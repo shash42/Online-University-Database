@@ -67,15 +67,14 @@ class User:
         return
  
     def showSgForCourse(self, courseid):
-        sg_query = '''
-                    CREATE VIEW REQ_SG AS
-                    (SELECT DISTINCT SgUrl FROM PARTICIPATES_IN WHERE CourseID = %d);
-                    CREATE VIEW POSS_SG AS
-                    (SELECT DISTINCT SgUrl FROM REQ_SG JOIN STUDY_GROUP WHERE SgStatus = 'Active' OR SgStatus = 'Planned');
-                    SELECT SgUrl, AVG(UserSgRating), COUNT(EventNum), COUNT(DISTINCT (UserName, DNum))
-                    FROM  POSS_SG JOIN `MEMBER_OF`, POSS_SG JOIN `SG_EVENT`
-                    GROUP BY SgUrl
-                    ORDER BY SgUpdated DESC'''
+        self.sesh.cursor.execute("DROP VIEW IF EXISTS `REQ_SG`;")
+        self.sesh.cursor.execute("CREATE VIEW `REQ_SG` AS (SELECT DISTINCT SgUrl FROM `PARTICIPATES_IN` WHERE CourseID = %s);", courseid); 
+        self.sesh.cursor.execute("DROP VIEW IF EXISTS `POSS_SG`;")
+        self.sesh.cursor.execute("CREATE VIEW `POSS_SG` AS (SELECT DISTINCT SgUrl FROM `REQ_SG` NATURAL JOIN `STUDY_GROUP` WHERE SgStatus = 'Active' OR SgStatus = 'Planned');")
+        sg_query = "SELECT SgUrl, AVG(UserSgRating), COUNT(EventNum), COUNT(DISTINCT (UserName, DNum)) \
+                    FROM  `POSS_SG` NATURAL JOIN `MEMBER_OF` NATURAL JOIN `SG_EVENT` \
+                    GROUP BY SgUrl \
+                    ORDER BY SgUpdated DESC;"
         self.sesh.cursor.execute(sg_query)
         result = self.sesh.cursor.fetchall()
         table_format(result)
@@ -83,10 +82,20 @@ class User:
 
 
     def manage_studygroup(self):
-        # [TODO:] Display list of study groups user is part of here.
+        query = "SELECT SgUrl FROM `PARTICIPATES_IN` WHERE UserName = %s and DNum = %s"
+        self.sesh.cursor.execute(query, (self.current_user[0],self.current_user[1]))
+        result = self.sesh.cursor.fetchall()
+        univutil.table_format(result)
         sg_url = input("Enter URL of Study Group: ")
-        # [TODO:] Check if the study group exists
-        # [TODO:] If user does not have manage access, return
+        if not(sg_url in [(lambda x : result[x]["SgUrl"])(i) for i in range(len(result))]):
+            print("Invalid URL")
+            input()
+            return
+        self.sesh.cursor.execute("SELECT UserSgRole FROM `MEMBER_OF` WHERE SgUrl = %s AND UserName = %s AND DNum = %s;",(sg_url, self.current_user[0], self.current_user[1]))
+        result = self.sesh.cursor.fetchone()
+        sg_role = result["UserSgRole"]
+        if(sg_role == "Member"):
+            return
         while(True):
             selection = 0
             print("1. Add pinned information")
@@ -94,8 +103,8 @@ class User:
             print("3. Add options (course/languages)")
             print("5. Change status")
             print("6. Manage User")
-            print("9. Exit")
-            selection = print("Choose one of the above options: ")
+            print("7. Exit")
+            selection = input("Choose one of the above options: ")
             if(selection == "1"):
                 self.create_pin(sg_url)
             elif(selection == "2"):
@@ -106,7 +115,7 @@ class User:
                 self.change_sgstatus(sg_url)
             elif(selection == "6"):
                 print("Not implemented") #[TODO:]
-            elif(selection == "9"):
+            elif(selection == "7"):
                 return
             else:
                 print()
@@ -139,21 +148,16 @@ class User:
             print("3. Show offerings")
             print("4. Interests Update")
             print("5. Exit")
-            choice = input("Enter chocie number: ")
+            choice = input("Enter choice number: ")
             if(choice == "1"):
                 self.enroll()
-            elif(choice == 2):
+            elif(choice == "2"):
                 self.unenroll()
-            elif(choice == 3):
-                #[TODO:] Shift this to a function and complete it!
-                os.system("clear")
-                print("1. Courses")
-                print("2. Subjects")
-                choice = input()
-                self.see_available("COURSE")
-            elif(choice == 4):
+            elif(choice == "3"):
+                self.show_offerings()
+            elif(choice == "4"):
                 self.update_interest()
-            elif(choice == 5):
+            elif(choice == "5"):
                 break
             else:
                 print("Invalid choice")
@@ -187,22 +191,27 @@ class User:
     def enroll(self): # This would be a insertion into the quarternary relationship along with creating study_group if reqd.
         try:
             print("You can enroll in a new course (and a study group) or a new study group for a course already being taken.")
-            courseid = int(input("CourseID: "))
-            #[TODO:] Validate that course exists and put in while loop
-            coursequery = "INSERT IGNORE INTO `TAKES` VALUES (%s, %d, %d)" % (self.current_user[0], self.current_user[1], courseid)
-            self.sesh.cursor.execute(coursequery) # This ignores if entry in TAKES already exists^
-            
+            result = self.sesh.see_all("COURSE")
+            courseid = input("CourseID: ")
+            while(courseid not in [(lambda x: result[x]["CourseID"])() for i in range(len(result))]):
+                courseid = input("CourseID: ")
+            courseid = int(courseid)
+            coursequery = "INSERT IGNORE INTO `TAKES` (UserName, DNum, CourseID) VALUES (%s, %s, %s);" 
+            self.sesh.cursor.execute(coursequery, (self.current_user[0], self.current_user[1], courseid)) # This ignores if entry in TAKES already exists^
             print("Available study groups for this course:")
-            self.showSgForCourse(courseid)
+            #self.showSgForCourse(courseid)
             new_sg = 'X'
-            sg = input("Study Group URL (from above or new): ")
             while(new_sg != 'N' and new_sg != 'E'):
                 new_sg = input("Do you want to create your own study group (N) or join an existing one [E]: ")
+            if(new_sg == "E"):
+                print("TODO")
+
             if(new_sg == 'N'):
-                sgcreate = "INSERT INTO STUDY_GROUP %s" % (sg)
-                self.sesh.cursor.execute(sgcreate)
-                sgquery = "INSERT IGNORE INTO `MEMBER_OF` VALUES (%s, %d, %s, %s)" % (self.current_user[0], self.current_user[1], sg, "Admin")
-                self.sesh.cursor.execute(sgquery)
+                sg = input("Study Group URL: ")
+                sgcreate = "INSERT INTO STUDY_GROUP (`SgUrl`) VALUES (%s);"
+                self.sesh.cursor.execute(sgcreate, sg)
+                sgquery = "INSERT IGNORE INTO `MEMBER_OF` (UserName, DNum, SgUrl, UserSgRole) VALUES (%s, %s, %s, %s);"
+                self.sesh.cursor.execute(sgquery, (self.current_user[0], self.current_user[1], sg, "Admin"))
                 print("Created a new study group succesfully!")
                 
             else:
@@ -212,18 +221,29 @@ class User:
             
             #[TODO:] We are not showing languages of each study group, and user might not want any of those list, but is stuck in while() here.
             print("Available languages for this study group")
-            langquery = "SELECT DISTINCT LangCode, LangName FROM PARTICIPATE_IN WHERE SgUrl = '%s'" % (sg)
+            langquery = "SELECT DISTINCT LangCode FROM PARTICIPATES_IN WHERE SgUrl = '%s'" % (sg)
             self.sesh.cursor.execute(langquery)
             result = self.sesh.cursor.fetchall()
             lfound = 0
+            if(univutil.table_format(result) == 0):
+                values = self.sesh.see_all("LANGUAGE")
+                while(True):
+                    choice = input("Pick language index: ")
+                    try:
+                        choice = int(choice)
+                        langcode = values[choice-1]['LangCode']
+                        lfound = 1
+                        break
+                    except:
+                        print("Error. Invalid index")
             while(lfound==0):
                 langcode = input("Language to participate in study_group (langcode): ")
                 for i in range(self.sesh.cursor.rowcount):
                     if(result[i]["LangCode"]==langcode):
                         lfound=1
             
-            query = "INSERT INTO PARTICIPATES_IN VALUES (%s, %d, %s, %s, %d)" % (self.current_user[0], self.current_user[1], sg, langcode, courseid)
-            self.sesh.cursor.execute(query)
+            query = "INSERT INTO PARTICIPATES_IN VALUES (%s, %s, %s, %s, %s);"
+            self.sesh.cursor.execute(query, (self.current_user[0], self.current_user[1], sg, langcode, courseid))
             self.sesh.connection.commit()
             print("Enrolled in Course: %d as a member of Study Group: %s in language: %s succesfully!" % (courseid, sg, langcode))
 
@@ -500,15 +520,15 @@ class User:
             self.sesh.cursor.execute(query)
             result = self.sesh.cursor.fetchall()
             num_posts = self.sesh.cursor.rowcount
-            print(result)
             if(num_posts == 0):
                 print("Sorry, no posts exist to be updated!")
                 return
             print(num_posts, "posts currently exist!")
             
             post_num = num_posts
+            univutil.table_format(result)
             while(post_num >= num_posts):
-                post_num = int(input("Enter the post number (0-indexed): "))
+                post_num = int(input("Enter the post number: "))
 
             print("Post Title: ", result[post_num]["PostTitle"])
             print("Post Content: ", result[post_num]["PostContent"])
@@ -532,7 +552,18 @@ class User:
             univutil.ask_user_action(self.update_post)
         
         return
-            
+    
+    def show_offerings(self):
+        os.system("clear")
+        print("1. Courses")
+        print("2. Subjects")
+        choice = input()
+        while(choice not in ["1", "2"]):
+            choice = input()
+        if(choice == "1"):
+            self.sesh.see_available("COURSE")
+        elif(choice == "2"):
+            self.sesh.see_all("SUBJECT")
 
     def befriend(self):
         try:

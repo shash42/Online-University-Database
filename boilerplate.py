@@ -9,7 +9,7 @@ class Session:
     
     def __init__(self):
         self.connection = pymysql.connect(host="localhost",
-                              user="daa",
+                              user="temp",
                               password="",
                               db='UNIVERSITY',
                               charset='utf8mb4',
@@ -38,27 +38,28 @@ class Session:
 
     def login(self):
         os.system("clear")
-#        try:
-        UName = input('UserName: ')
-        DNumber = int(input('DNumber: '))
-        Pass = input('Password: ')
-        query = "SELECT Password from `USER` where UserName = '%s' AND DNum = %d" % (UName,DNumber)
-        self.cursor.execute(query)
-        resultset = self.cursor.fetchone()
-        if(not(resultset)):
-            print("You need to sign up first")
-            input()
-        else:
-            if(resultset['Password'] == Pass):
-                print("Sucessfully logged in")
+        try:
+            UName = input('UserName: ')
+            DNumber = int(input('DNumber: '))
+            Pass = input('Password: ')
+            query = "SELECT Password from `USER` where UserName = '%s' AND DNum = %d" % (UName,DNumber)
+            self.cursor.execute(query)
+            resultset = self.cursor.fetchone()
+            if(not(resultset)):
+                print("You need to sign up first")
                 input()
-                self.user.current_user = [UName,DNumber]
-                self.user_screen()
             else:
-                print("Authentication failed")
-                input()
-        # except Exception as e:
-        #     print(e)
+                if(resultset['Password'] == Pass):
+                    print("Sucessfully logged in")
+                    input()
+                    self.user.current_user = [UName,DNumber]
+                    self.user_screen()
+                else:
+                    print("Authentication failed")
+                    input()
+        except Exception as e:
+            print("Something went wrong.")
+            input()
     
     def signup(self):
         self.admin.add_user()
@@ -247,9 +248,11 @@ class Session:
 
 def main():
     session = Session()
+
     while(True):
+        
         if(session.main_screen() == 0):
-            break
+           break
     
 
 if(__name__ == "__main__"):

@@ -153,8 +153,6 @@ class Admin:
                     break
             
             self.sesh.connection.commit()
-            return "Course added"
-
         except Exception as e:
             print(e)
             univutil.ask_user_action(self.add_course)
@@ -171,7 +169,6 @@ class Admin:
             sql_query = "DELETE FROM `COURSE_DIFFICULTY` WHERE CourseName = %s AND CourseOrg = %s AND CoursePlatform = %s"
             self.sesh.cursor.execute(sql_query, (cname, corg, cplat))
             self.sesh.connection.commit()
-        return "Course deleted"
         except:
             univutil.ask_user_action(self.delete_course)
 

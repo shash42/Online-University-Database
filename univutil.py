@@ -16,8 +16,7 @@ def ask_user_action(fun_name):
 
 def table_format(result):
     if(len(result) == 0):
-        print("Found nothing")
-        return
+        return 0
     headings = ["Index"]+list(result[0].keys())
     values = [(lambda x: list(x.values()))(x) for x in result]
     temp = "{:<18}"*len(headings)
@@ -26,3 +25,4 @@ def table_format(result):
         i = [count+1]+i
         i = [k if k!=None else "NA" for k in i]
         print(temp.format(*i))
+    return 1
