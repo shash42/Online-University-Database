@@ -8,7 +8,7 @@ class Admin:
 
     def add_user(self):
         try:
-            os.system('clear')
+            #os.system('clear')
             print("ADD NEW USER")
             username = input("Username*: ")
             dnum = self.sesh.get_number(username,"USER","UserName")
@@ -58,7 +58,7 @@ class Admin:
 
     def add_course(self):
         try:
-            os.system("clear")
+            #os.system("clear")
             print("ADD NEW COURSE")
             attributes = {"Course Name: ":"", 
                         "Course Org: ":"", 
@@ -360,11 +360,11 @@ class Admin:
                 (SELECT UserName, DNum, Friend2Name AS FrName, Friend2DNum AS FrDNum FROM UserTaken JOIN FRIENDS_WITH \
                 WHERE Friend1Name = UserName AND Friend1DNum = DNum);"
         USgFrenq = "CREATE VIEW USgFrenz AS \
-                (SELECT UserName, DNum, SgUrl, Points, NumUsers, UserSgContrib, UserSgRating, COUNT(DISTINCT(CONCAT(FrName, FrDNum))) AS NumFrenz \
+                (SELECT UserName, DNum, SgUrl, AVG(Points) AS Points, NumUsers, UserSgContrib, UserSgRating, COUNT(DISTINCT(CONCAT(FrName, FrDNum))) AS NumFrenz \
                 FROM UFrenz NATURAL JOIN FinUserSG \
                 GROUP BY UserName, DNum, SgUrl);"
         Finalq = "CREATE VIEW Final AS \
-                (SELECT UserName, DNum, AVG(SgUrl) AS AvgGroups, Points, AVG(UserSgContrib) AS AvgContrib, AVG(UserSgRating) AS AvgSgRating, Avg(NumFrenz) AS AvgFrenz \
+                (SELECT UserName, DNum, COUNT(SgUrl) AS CountGroups, AVG(Points) as Points, AVG(UserSgContrib) AS AvgContrib, AVG(UserSgRating) AS AvgSgRating, Avg(NumFrenz) AS AvgFrenz \
                 FROM USgFrenz GROUP BY UserName, DNum);"
 
         cc.execute(perfq, courseid)
@@ -378,6 +378,7 @@ class Admin:
         cc.execute(UFrenq)
         cc.execute(USgFrenq)
         cc.execute(Finalq)
+        cc.execute("SELECT * FROM Final")
         result = cc.fetchall()
         print("Overall Analysis Table:")
         univutil.table_format(result)
@@ -391,12 +392,13 @@ class Admin:
                     (SELECT * FROM Final ORDER BY Points DESC LIMIT %s);"
 
         topq = "CREATE VIEW FinalTOP AS \
-                (SELECT UserName, DNum, AVG(AvgGroups) AS AvgGroupsT, AVG(Points) AS AvgPointsT, \
+                (SELECT UserName, DNum, AVG(CountGroups) AS AvgGroupsT, AVG(Points) AS AvgPointsT, \
                 AVG(AvgContrib) AS AvgContribT, AVG(AvgSgRating) AS AvgRatingT, AVG(AvgFrenz) AS AvgFrenzT \
                 FROM Final GROUP BY UserName, DNum);"
 
         cc.execute(toptempq, num_top)
         cc.execute(topq)
+        cc.execute("SELECT * FROM FinalTOP")
         resulttop = cc.fetchall()
         univutil.table_format(resulttop)
         
@@ -404,12 +406,13 @@ class Admin:
         bottomtempq = "CREATE VIEW TempBOTTOM AS \
                     (SELECT * FROM Final ORDER BY Points LIMIT %s);"
         bottomq = "CREATE VIEW FinalBOTTOM AS \
-                (SELECT UserName, DNum, AVG(AvgGroups) AS AvgGroupsB, AVG(Points) AS AvgPointsB, \
+                (SELECT UserName, DNum, AVG(CountGroups) AS AvgGroupsB, AVG(Points) AS AvgPointsB, \
                 AVG(AvgContrib) AS AvgContribB, AVG(AvgSgRating) AS AvgRatingB, AVG(AvgFrenz) AS AvgFrenzB \
                 FROM Final GROUP BY UserName, DNum);"
 
         cc.execute(bottomtempq, num_bottom)
         cc.execute(bottomq)
+        cc.execute("SELECT * FROM FinalBOTTOM")
         resultbottom = cc.fetchall()
         univutil.table_format(resultbottom)
 
