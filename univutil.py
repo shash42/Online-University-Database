@@ -1,5 +1,5 @@
 def ask_user_action(fun_name):
-    print("Oops, you entered something wrong or missed something")
+    print("Oops, something went wrong.")
     while(True):
         print("1. Retry")
         print("2. Exit")
@@ -26,3 +26,9 @@ def table_format(result):
         i = [k if k!=None else "NA" for k in i]
         print(temp.format(*i))
     return 1
+
+def error_parse(code):
+    d = {
+        1062: "Entry with that key already exists."
+    }
+    return d[code]

@@ -226,11 +226,8 @@ class Session:
 
     def get_number(self, username,tablename,columnname):
         query = "SELECT COUNT(*) FROM `%s` WHERE %s='%s'"%(tablename,columnname,username)
-        print(query)
         self.cursor.execute(query)
         resultset = self.cursor.fetchone()
-        print(resultset)
-        
         return resultset['COUNT(*)']
 
     def main_screen(self):

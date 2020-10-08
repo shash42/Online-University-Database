@@ -20,8 +20,8 @@ class Admin:
             dob = input("Date of Birth (YYYY-MM-DD))*: ")
             email = input("Email*: ")
             password = input("Password*: ")
-            sql = "INSERT INTO `USER` values ('%s',%d, '%s', '%s', '%s', '%s', '%s','%s');" % (username,dnum,fname,mname,lname,dob,email,password)
-            self.sesh.cursor.execute(sql)
+            sql = "INSERT INTO `USER` values ('%s',%d, '%s', '%s', '%s', '%s', '%s','%s');"
+            self.sesh.cursor.execute(sql, (username,dnum,fname,mname,lname,dob,email,password))
             
             numberOfLanguagesKnown = 0
             while(numberOfLanguagesKnown <= 0):
@@ -34,13 +34,12 @@ class Admin:
             for _ in range(numberOfSubjectInterest):
                 self.add_subjectInterest(username,dnum)
             self.sesh.connection.commit()
+            print("Registered succesfully! Username: %s DNum: %d".format(username, dnum))
+            input()
 
         except Exception as e:
-            print(e)
+            ##print(e)
             univutil.ask_user_action(self.add_user)
-
-        else:
-            print("Registered succesfully! Username: %s DNum: %d", username, dnum)
 
         return "Added user"
 
@@ -154,7 +153,7 @@ class Admin:
             
             self.sesh.connection.commit()
         except Exception as e:
-            print(e)
+            #print(e)
             univutil.ask_user_action(self.add_course)
 
     def delete_course(self):
@@ -188,8 +187,8 @@ class Admin:
             self.sesh.connection.commit()
             return "Added subject"
         except Exception as e:
-            #print(e)
-            self.ask_user_action(self.add_subject)
+            ##print(e)
+            univutil.ask_user_action(self.add_subject)
 
 
     def add_language(self):
@@ -213,7 +212,7 @@ class Admin:
             self.sesh.connection.commit()
             return "Added subject"
         except Exception as e:
-            print(e)
+            #print(e)
             univutil.ask_user_action(self.add_language)
 
     # [TODO:] CHECK THESE TWO LMAO
@@ -231,7 +230,7 @@ class Admin:
             self.sesh.cursor.execute(query)
             
         except Exception as e:
-            print(e)
+            #print(e)
             print("Try again")
             self.add_subjectInterest(username, dnum)
 
@@ -252,7 +251,7 @@ class Admin:
             self.sesh.cursor.execute(query)
             
         except Exception as e:
-            print(e)
+            #print(e)
             print("Try again")
             self.add_languageKnown(username, dnum)
 

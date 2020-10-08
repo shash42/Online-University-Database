@@ -13,50 +13,15 @@ class User:
 
     def show_friends_details(self):
         try:
-            query = "SELECT Friend2Name,Friend2DNum from `FRIENDS_WITH` WHERE Friend1Name = '%s' AND Friend1DNum = '%s'"
-            query = query % (self.current_user[0],self.current_user[1])
-            self.sesh.cursor.execute(query)
-            resultset1 = self.sesh.cursor.fetchall()
-            query = "SELECT Friend1Name,Friend1DNum from `FRIENDS_WITH` WHERE Friend2Name = '%s' AND Friend2DNum = '%s'"
-            query = query % (self.current_user[0],self.current_user[1])
-            self.sesh.cursor.execute(query)
-            resultset2 = self.sesh.cursor.fetchall()
-            all_friends = resultset1 + resultset2
-            check_str = "("
-            n = len(all_friends)
-            for friend in all_friends:
-                var = list(friend.values())
-                print(var)
-                check_str += "("
-                check_str += "'" + var[0] + "'"
-                check_str += "," + str(var[1]) + ")" 
-                n -= 1
-                if(n != 0):
-                    check_str += ","
-            check_str += ")"
-            subsetName = input("Enter part of friends full name: ")
-            
-            query = "SELECT CONCAT(FName,' ',MName,' ',SName) AS FULLNAME , Email FROM `USER` D WHERE "
-            
-            query += "(SELECT CONCAT(FName,' ',MName,' ',SName) FROM USER U WHERE U.UserName = D.UserName AND U.DNum = D.DNum)"
-            
-            query += " like '%" + subsetName + "%'" 
-            query += " AND (D.UserName,D.DNum) in %s" % (check_str)
-            
-            
-            self.sesh.cursor.execute(query)
-            resultset = self.sesh.cursor.fetchall()
-            if(not(resultset)):
-                print("No matching result")
-            else:
-                number = 1
-                for r in resultset:
-                    print(number)
-                    for e in r:
-                        print(e,r[e],sep=":")
-                    number += 1
+            name = input("Enter friends name: ")
+            all_users =  f'SELECT CONCAT_WS(" ",FName, MName, SName) as Name, UserName, DNum FROM USER WHERE CONCAT(FName, MName, SName) like \'%{name}%\';'
+            self.sesh.cursor.execute(all_users)
+            result = self.sesh.cursor.fetchall()
+            if(univutil.table_format(result) == 0):
+                print("No user with that name")
+            input()
         except Exception as e:
-            print(e)
+            univutil.ask_user_action(self.show_friends_details)
         
     def show_subject(self):
         query= 'SELECT * FROM SUBJECT'
@@ -132,7 +97,7 @@ class User:
         while(True):
             os.system("clear")
             print("1. Befriend")
-            print("2. Search Friend Details by Name")
+            print("2. Search for users")
             print("3. Exit")
             choice = input("Enter choice number: ")
             if(choice == "1"):
@@ -318,7 +283,7 @@ class User:
             print("Enrolled in Course: %d as a member of Study Group: %s in language: %s succesfully!" % (courseid, sg, langcode))
 
         except Exception as e:
-            print(e)
+            #print(e)
             univutil.ask_user_action(self.enroll)
         
         return   
@@ -350,7 +315,7 @@ class User:
             self.sesh.cursor.connection.commit()
         
         except Exception as e:
-            print(e)
+            #print(e)
             univutil.ask_user_action(self.update_usercontrib)
 
         else:
@@ -390,7 +355,7 @@ class User:
             self.sesh.cursor.connection.commit()
 
         except Exception as e:
-            print(e)
+            #print(e)
             univutil.ask_user_action(self.rate_sg)
     
     def addoption_studygroup(self, sg_url):
@@ -438,7 +403,7 @@ class User:
                 print("Added a new language succesfully!")
                     
         except Exception as e:
-            print(e)
+            #print(e)
             self.sesh.ask_user_action(self.addoption_studygroup)
 
         else: # Also add User - Course to User TAKES Course
@@ -447,7 +412,8 @@ class User:
                 self.sesh.cursor.execute(coursequery)
                 self.sesh.cursor.commit()
             except Exception as e:
-                print(e) #[TODO:] After testing comment this and pass because error might be that it already exists
+                #print(e) #[TODO:] After testing comment this and pass because error might be that it already exists
+                univutil.ask_user_action(self.addoption_studygroup)
 
     def create_meet(self, sg_url, event_num):
         try:
@@ -464,7 +430,7 @@ class User:
             self.sesh.connection.commit()
 
         except Exception as e:
-            print(e)
+            #print(e)
             self.sesh.ask_user_action(self.create_meet)
         
         else:
@@ -486,7 +452,7 @@ class User:
             print("Added Event Succesfully!")
 
         except Exception as e:
-            print(e)
+            #print(e)
             self.sesh.ask_user_action(self.create_target)
         
         return
@@ -507,7 +473,7 @@ class User:
             self.sesh.connection.commit()
 
         except Exception as e:
-            print(e)
+            #print(e)
             univutil.ask_user_action(self.create_event)
 
         else:
@@ -537,7 +503,7 @@ class User:
             self.sesh.connection.commit()
 
         except Exception as e:
-            print(e)
+            #print(e)
             univutil.ask_user_action(self.create_pin)    
     
         return
@@ -560,7 +526,7 @@ class User:
             self.sesh.connection.commit()
         
         except Exception as e:
-            print(e)
+            #print(e)
             univutil.ask_user_action(self.change_sgstatus)
         else:
             print("Status updated successfully!")
@@ -603,10 +569,13 @@ class User:
                 sql += "(`UserName`, `DNum`, `PostNumber`, `PostTitle`, `PostContent`, `Type`) VALUES ( %s, %s, %s, %s, %s, %s );"
                 self.sesh.cursor.execute(sql, (self.current_user[0], self.current_user[1], post_number, attrP["Post Title"],
                                     attrP["Post Content"], post_type))
+                tag = input("Enter tag: ")
+                tag_sql = "INSERT INTO BLOGTAG VALUES(%s, %s, %s, %s)"
+                self.sesh.cursor.execute(tag, self.current_user[0], self.current_user[1], post_number)
             self.sesh.connection.commit()
 
         except Exception as e:
-            print(e)
+            #print(e)
             univutil.ask_user_action(self.make_post)
 
         return
@@ -644,7 +613,7 @@ class User:
             self.sesh.connection.commit()
 
         except Exception as e:
-            print(e)
+            #print(e)
             univutil.ask_user_action(self.delete_post)
 
         return
@@ -684,7 +653,7 @@ class User:
             self.sesh.connection.commit()
 
         except Exception as e:
-            print(e)
+            #print(e)
             univutil.ask_user_action(self.update_post)
         
         return
@@ -709,8 +678,8 @@ class User:
             query = "SELECT PostTitle, PostContent, TimeStamp FROM POST WHERE UserName = '%s' AND DNum = %d" % (username, dnum)
             self.sesh.cursor.execute(query)
             result = self.sesh.cursor.fetchall()
-            table_format(result)
-        
+            univutil.table_format(result)
+            input()
         except Exception as e:
             print(e)
             univutil.ask_user_action(self.view_user_posts)
@@ -737,7 +706,7 @@ class User:
             self.sesh.connection.commit()
         
         except Exception as e:    
-            print(e)
+            #print(e)
             univutil.ask_user_action(self.befriend)
 
         return
@@ -763,7 +732,7 @@ class User:
             self.sesh.connection.commit()
 
         except Exception as e:    
-            print(e)
+            #print(e)
             univutil.ask_user_action(self.update_interest)
 
         return
