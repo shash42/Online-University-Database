@@ -148,9 +148,8 @@ class User:
         while(True):
             os.system("clear")
             print("1. Enroll")
-            print("2. Unenroll")
-            print("3. Show offerings")
-            print("4. Interests Update")
+            print("2. Show offerings")
+            print("3. Interests Update")
             print("5. Exit")
             choice = input("Enter choice number: ")
             if(choice == "1"):
@@ -173,7 +172,7 @@ class User:
             print("1. Create Post")
             print("2. Edit Post")
             print("3. Delete Post")
-            print("4. View Post of User")
+            print("4. View Posts of User")
             print("5. Exit")
             choice = input("Enter choice number: ")
             if(choice == "1"):
@@ -183,14 +182,76 @@ class User:
             elif(choice == "3"):
                 self.delete_post()
             elif(choice == "4"):
-                # [TODO:] Optionally implement
-                print("Not implemented")
+                self.view_user_posts()
             elif(choice == "5"):
                 break
             else:
                 print("Invalid option")
         return
 
+    def manage_sg(self):
+        while(True):
+            os.system("clear")
+            print("1. Rate your study groups")
+            print("2. Administrate study groups")
+            print("5. Exit")
+            choice = input("Enter choice number: ")
+            if(choice == "1"):
+                self.rate_sg()
+            elif(choice == "2"):
+                self.admin_studygroup()
+            elif(choice == "5"):
+                break
+            else:
+                print("Invalid option")
+        return
+
+    def admin_studygroup(self):
+        sgquery = "SELECT SgUrl FROM MEMBER_OF WHERE UserSgRole = 'Admin' AND UserName = '%s' AND DNum = %d" % (self.current_user[0], self.current_user[1])
+        self.sesh.cursor.execute(sgquery)
+        if(self.sesh.cursor.rowcount==0):
+            print("You are not an admin of any group :(")
+            return
+        result = self.sesh.cursor.fetchall()
+        print("You are an admin of %d study groups" % (self.sesh.cursor.rowcount))
+        for sg in result:
+            print(sg["SgUrl"])
+
+        sg_url = input("Enter URL of Study Group to manage: ")
+        flag = 0
+        for sg in result:
+            if(sg["SgUrl"] == sg_url):
+                flag = 1
+
+        if(flag==0):
+            print("You are not an admin of this group :(")
+            return
+        else:
+            print("Admin rights authenticated!")
+
+        while(True):
+            selection = 0
+            print("1. Add pinned information")
+            print("2. Add an event")
+            print("3. Add options (course/languages)")
+            print("4. Change status")
+            print("5. Update User Contribution")
+            print("9. Exit")
+            selection = print("Choose one of the above options: ")
+            if(selection == "1"):
+                self.create_pin(sg_url)
+            elif(selection == "2"):
+                self.create_event(sg_url)
+            elif(selection == "3"):
+                self.addoption_studygroup(sg_url)
+            elif(selection == "4"):
+                self.change_sgstatus(sg_url)
+            elif(selection == "5"):
+                self.update_usercontrib(sg_url)
+            elif(selection == "9"):
+                return
+            else:
+                return "Invalid choice. Please try again!"
 
     def enroll(self): # This would be a insertion into the quarternary relationship along with creating study_group if reqd.
         try:
@@ -252,12 +313,79 @@ class User:
             print(e)
             ask_user_action(self.enroll)
         
+        return   
+
+    def update_usercontrib(self, sg_url):
+        try:
+            os.system("clear")
+            print("User List: ")
+            userquery = "SELECT UserName, DNum FROM MEMBER_OF WHERE SgUrl = '%s'" % (sg_url)
+            self.sesh.cursor.execute(userquery)
+            result = self.sesh.cursor.fetchall()
+            table_format(result)
+            
+            flag = 0
+            while(flag==0):
+                username = input("Enter username: ")
+                dnum = int(input("Enter dnum"))
+                for r in result:
+                    if(r["UserName"] == username and r["DNum"] == dnum):
+                        flag = 1
+                if(flag==0):
+                    print("No such user in study group, try again!")
+
+            contrib = -1
+            while(contrib < 0 or contrib > 10):
+                contrib = int(input("Contribution rating of user [1-10]: ")
+            
+            contribquery = "UPDATE MEMBER_OF SET UserSgContrib = %d WHERE SgUrl = '%s' AND UserName = '%s' AND DNum = %d" % (contrib, sg_url, self.current_user[0], self.current_user[1])
+            self.sesh.cursor.execute(contribquery)
+            self.sesh.cursor.connection.commit()
+        
+        except Exception as e:
+            print(e)
+            ask_user_action(self.update_usercontrib)
+
+        else:
+            print("Contribution updated succesfully!")
+
         return
 
-    def unenroll(self): # [TODO:] This would be a deletion from the quarternary relationship
-        return    
+    def rate_sg(self):
+        try:
+            sgquery = "SELECT SgUrl FROM MEMBER_OF WHERE UserSgRole = 'Member' AND UserName = '%s' AND DNum = %d" % (self.current_user[0], self.current_user[1])
+            self.sesh.cursor.execute(sgquery)
+            if(self.sesh.cursor.rowcount==0):
+                print("You are not a member of any group :(")
+                return
+            result = self.sesh.cursor.fetchall()
+            print("You are a member of %d study groups" % (self.sesh.cursor.rowcount))
+            for sg in result:
+                print(sg["SgUrl"])
 
+            sg_url = input("Enter URL of Study Group to rate: ")
+            flag = 0
+            for sg in result:
+                if(sg["SgUrl"] == sg_url):
+                    flag = 1
 
+            if(flag==0):
+                print("You are not a member of this group :(")
+                return
+            else:
+                print("Member rights authenticated!")
+
+            rating = -1
+            while(rating < 0 or rating > 10):
+                rating = int(input("Enter rating [0-10]: "))
+            query = "UPDATE MEMBER_OF SET UserSgRating = %d WHERE UserName = '%s' AND DNum = %d AND SgUrl = '%s'" % (rating, self.current_user[0], self.current_user[1], sg_url)
+            self.sesh.cursor.execute(query)
+            self.sesh.cursor.connection.commit()
+
+        except Exception as e:
+            print(e)
+            ask_user_action(self.rate_sg)
+    
     def addoption_studygroup(self, sg_url):
         print("Choose a Course and it's corresponding discussion language! Atleast one must be new for the study group")
         courseid = -1
@@ -566,6 +694,20 @@ class User:
         elif(choice == "2"):
             self.sesh.see_all("SUBJECT")
             input()
+            
+    def view_user_posts(self):
+        try:
+            username = input("Enter UserName: ")
+            dnum = int(input("Enter DNum: "))
+            query = "SELECT PostTitle, PostContent, TimeStamp FROM POST WHERE UserName = '%s' AND DNum = %d" % (username, dnum)
+            self.sesh.cursor.execute(query)
+            result = self.sesh.cursor.fetchall()
+            table_format(result)
+        
+        except Exception as e:
+            print(e)
+            ask_user_action(self.view_user_posts)
+    
 
     def befriend(self):
         try:
