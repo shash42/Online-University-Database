@@ -232,7 +232,13 @@ class User:
             new_sg = 'X'
             if(values == 0):
                 print("No study groups for this course.")
-                new_sg = "N"
+                while(True):
+                    new_sg = input("Create new study group? [Y/N]")
+                    if(new_sg == "N"):
+                        return
+                    elif(new_sg == "Y"):
+                        new_sg = "N"
+                        break
             while(new_sg != 'N' and new_sg != 'E'):
                 new_sg = input("Do you want to create your own study group (N) or join an existing one [E]: ")
             if(new_sg == "E"):
@@ -254,7 +260,6 @@ class User:
             self.sesh.cursor.execute(sgquery, (self.current_user[0], self.current_user[1], sg, "Admin"))
             print("Created a new study group succesfully!")
                 
-            #[TODO:] We are not showing languages of each study group, and user might not want any of those list, but is stuck in while() here.
             print("Available languages for this study group")
             langquery = "SELECT DISTINCT LangCode FROM PARTICIPATES_IN WHERE SgUrl = '%s'" % (sg)
             self.sesh.cursor.execute(langquery)
@@ -263,7 +268,11 @@ class User:
             if(univutil.table_format(result) == 0):
                 values = self.sesh.see_all("LANGUAGE")
                 while(True):
-                    choice = input("Pick language index: ")
+                    choice = input("Pick language index (Enter N if none): ")
+                    if(choice == "N"):
+                        print("Let's find a different study group")
+                        input()
+                        return
                     try:
                         choice = int(choice)
                         langcode = values[choice-1]['LangCode']
@@ -412,8 +421,9 @@ class User:
                 self.sesh.cursor.execute(coursequery)
                 self.sesh.cursor.commit()
             except Exception as e:
+                pass
                 #print(e) #[TODO:] After testing comment this and pass because error might be that it already exists
-                univutil.ask_user_action(self.addoption_studygroup)
+                #univutil.ask_user_action(self.addoption_studygroup)
 
     def create_meet(self, sg_url, event_num):
         try:
@@ -459,8 +469,10 @@ class User:
     
     def create_event(self, sg_url):
         try:
+            query = "SELECT COUNT(*) FROM `SG_EVENT` WHERE SgUrl = %s"
+            self.sesh.cursor.execute(query, sg_url)
+            event_number = self.sesh.cursor.fetchone()["COUNT(*)"]
             attrE = {
-                "Event Number" : "", # [TODO:] This has to be computed using SgUrl
                 "Event Title" : "",
                 "Event Info." : ""
             }
@@ -468,12 +480,12 @@ class User:
                     while(attrE[attribute]==""):
                         attrE[attribute] = input(attribute+": ")
             
-            query = "INSERT INTO `SG_EVENT` (SgUrl, EventNum, EventTitle, EventInfo) VALUES ('%s' '%s' '%s' '%s')" % (sg_url, attrE["Event Number"], attrE["Event Title"], attrE["Event Info."])
-            self.sesh.cursor.execute(query)
+            query = "INSERT INTO `SG_EVENT` (SgUrl, EventNum, EventTitle, EventInfo) VALUES (%s, %s, %s, %s);"
+            self.sesh.cursor.execute(query, (sg_url, event_number, attrE["Event Title"], attrE["Event Info."]))
             self.sesh.connection.commit()
 
         except Exception as e:
-            #print(e)
+            print(e)
             univutil.ask_user_action(self.create_event)
 
         else:

@@ -218,7 +218,6 @@ class Admin:
             #print(e)
             univutil.ask_user_action(self.add_language)
 
-    # [TODO:] CHECK THESE TWO LMAO
     def add_subjectInterest(self,username,dnum, values):
         SubName = ""
         choice = input("Pick subject index: ")
