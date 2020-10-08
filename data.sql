@@ -819,14 +819,14 @@ CREATE TABLE `TAKES` (
   `UserName` varchar(255) NOT NULL,
   `DNum` int NOT NULL,
   `CourseID` int NOT NULL,
-  `UserPerformance` float NOT NULL DEFAULT '0',
+  `UserPerformance` float NOT NULL DEFAULT '5',
   `UserNumHours` int NOT NULL DEFAULT '0',
   `UserProgress` float NOT NULL DEFAULT '0',
   PRIMARY KEY (`UserName`,`DNum`,`CourseID`),
   KEY `takes_courseid_fk` (`CourseID`),
   CONSTRAINT `takes_courseid_fk` FOREIGN KEY (`CourseID`) REFERENCES `COURSE` (`CourseID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `takes_user_fk` FOREIGN KEY (`UserName`, `DNum`) REFERENCES `USER` (`UserName`, `DNum`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `check_performance` CHECK (((`UserPerformance` >= 0) and (`UserPerformance` <= 100))),
+  CONSTRAINT `check_performance` CHECK (((`UserPerformance` >= 0) and (`UserPerformance` <= 10))),
   CONSTRAINT `check_progress` CHECK (((`UserProgress` >= 0) and (`UserProgress` <= 100)))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
