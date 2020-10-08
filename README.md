@@ -84,9 +84,9 @@ We have implemented a super-set of the functional requirements described in our 
     <li> Obtain passwords for authentication - main.py/login() </li>
     <li> Obtain friends for a user - User.py/show_friends_details() </li>
     <li> Show study groups of a user (with constraints on role being Member and Admin)- User.py/rate_sg() and User.py/admin_sg() </li>
-    <li> Show languages of a particular study group - User.py()/enroll()</li>
-    <li> Show role for user in a particular study group - User.py()/update_usercontrib()</li>
-    <li> Obtain status of a study group - User.py()/change_sgstatus()</li>
+    <li> Show languages of a particular study group - User.py/enroll()</li>
+    <li> Show role for user in a particular study group - User.py/update_usercontrib()</li>
+    <li> Obtain status of a study group - User.py/change_sgstatus()</li>
 </ol>
 
 
@@ -150,7 +150,7 @@ To show one possible way to quickly use this data, aggregate statistics of the a
 <h4> Update </h4>
 
 <ol>
-    <li> Change status of a study group - User.py()/change_sgstatus()</li>
+    <li> Change status of a study group - User.py/change_sgstatus()</li>
     <li> Update contribution rating for a member - User.py/update_usercontrib()</li>
     <li> Update role of a user - User.py/update_usercontrib() </li>
     <li> Update rating of a study_group as a member - User.py/rate_sg()</li>
