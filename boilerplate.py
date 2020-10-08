@@ -8,12 +8,12 @@ from univutil import table_format
 class Session:
     
     def __init__(self):
-        # self.connection = pymysql.connect(host="localhost",
-        #                       user="daa",
-        #                       password="",
-        #                       db='UNIVERSITY',
-        #                       charset='utf8mb4',
-        #                       cursorclass=pymysql.cursors.DictCursor)
+        self.connection = pymysql.connect(host="localhost",
+                              user="daa",
+                              password="",
+                              db='UNIVERSITY',
+                              charset='utf8mb4',
+                              cursorclass=pymysql.cursors.DictCursor)
         self.cursor = self.connection.cursor()
         self.user = User(self)
         self.admin = Admin(self)
@@ -161,20 +161,13 @@ class Session:
                 refine = input()
                 if(refine not in ["1","2","3","4"]):
                     print("Invalid choice")
+                    input()
                     continue
                 if(refine == "4"):
                     continue
                 break
             elif(choice == "3"):
-                result = self.see_all(table)
-                courseid = input("Enter CourseID: ")
-                try:
-                    sql_query = "SELECT CourseName, CourseRating FROM `COURSE` WHERE CourseID = %s"
-                    self.cursor.execute(sql_query, courseid)
-                    result = self.cursor.fetchall()
-                    table_format(result)
-                except:
-                    print("Error")
+                return
                 
             elif(choice == "4"):
                 return
@@ -238,6 +231,15 @@ class Session:
         result = self.cursor.fetchall()
         table_format(result)
         return result
+
+    def get_number(self, username,tablename,columnname):
+        query = "SELECT COUNT(*) FROM `%s` WHERE %s='%s'"%(tablename,columnname,username)
+        print(query)
+        self.cursor.execute(query)
+        resultset = self.cursor.fetchone()
+        print(resultset)
+        
+        return resultset['COUNT(*)']
 
     def main_screen(self):
         os.system("clear")

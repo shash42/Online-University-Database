@@ -11,7 +11,7 @@ class Admin:
             os.system('clear')
             print("ADD NEW USER")
             username = input("Username*: ")
-            dnum = self.get_number(username,"USER","UserName")
+            dnum = self.sesh.get_number(username,"USER","UserName")
             fname = input("First Name*: ")
             mname = input("Middle Name: ")
             if(mname == ""):
@@ -42,7 +42,7 @@ class Admin:
         else:
             print("Registered succesfully! Username: %s DNum: %d", username, dnum)
 
-        return
+        return "Added user"
 
 
     def get_number(self, username,tablename,columnname):
@@ -160,38 +160,39 @@ class Admin:
             univutil.ask_user_action(self.add_course)
 
     def delete_course(self):
-        #try:
-        values = self.sesh.see_all("COURSE")
-        choice = input("Enter course index: ")
-        choice = int(choice)
-        cname, corg, cplat = values[choice-1]['CourseName'], values[choice-1]['CourseOrg'], values[choice-1]['CoursePlatform']
-        sure = input("Are you sure? [y/n]: ")
-        if(sure == "n"):
-            return "Course not deleted"
-        sql_query = "DELETE FROM `COURSE_DIFFICULTY` WHERE CourseName = %s AND CourseOrg = %s AND CoursePlatform = %s"
-        self.sesh.cursor.execute(sql_query, (cname, corg, cplat))
-        self.sesh.connection.commit()
+        try:
+            values = self.sesh.see_all("COURSE")
+            choice = input("Enter course index: ")
+            choice = int(choice)
+            cname, corg, cplat = values[choice-1]['CourseName'], values[choice-1]['CourseOrg'], values[choice-1]['CoursePlatform']
+            sure = input("Are you sure? [y/n]: ")
+            if(sure == "n"):
+                return "Course not deleted"
+            sql_query = "DELETE FROM `COURSE_DIFFICULTY` WHERE CourseName = %s AND CourseOrg = %s AND CoursePlatform = %s"
+            self.sesh.cursor.execute(sql_query, (cname, corg, cplat))
+            self.sesh.connection.commit()
         return "Course deleted"
-        # except:
-        #     univutil.ask_user_action(self.delete_course)
+        except:
+            univutil.ask_user_action(self.delete_course)
 
     def add_subject(self):
-        #try:
-        print('ADDING SUBJECT')
-        
-        attributes = {"Subject Name: ":""
-            }
-    
-        for attribute in attributes:
-            while(attributes[attribute]==""):
-                attributes[attribute] = input(attribute)
+        try:
+            print('ADDING SUBJECT')
             
-        query = "INSERT INTO `SUBJECT` VALUES ('%s');" % (attributes["Subject Name: "]) 
-        self.sesh.cursor.execute(query)
-        self.sesh.connection.commit()
-        # except Exception as e:
-        #     print(e)
-        #     self.ask_user_action(self.add_subject)
+            attributes = {"Subject Name: ":""
+                }
+        
+            for attribute in attributes:
+                while(attributes[attribute]==""):
+                    attributes[attribute] = input(attribute)
+                
+            query = "INSERT INTO `SUBJECT` VALUES ('%s');" % (attributes["Subject Name: "]) 
+            self.sesh.cursor.execute(query)
+            self.sesh.connection.commit()
+            return "Added subject"
+        except Exception as e:
+            #print(e)
+            self.ask_user_action(self.add_subject)
 
 
     def add_language(self):
@@ -213,13 +214,10 @@ class Admin:
             query = "INSERT INTO `LANGUAGE` VALUES ('%s','%s')" % (attributes['LangCode'],attributes['LangName'])
             self.sesh.cursor.execute(query)
             self.sesh.connection.commit()
-
+            return "Added subject"
         except Exception as e:
             print(e)
             univutil.ask_user_action(self.add_language)
-    
-    def add_prerequisite(self):
-        return
 
     # [TODO:] CHECK THESE TWO LMAO
     def add_subjectInterest(self,username,dnum):

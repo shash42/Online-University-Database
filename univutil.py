@@ -19,7 +19,7 @@ def table_format(result):
         return
     headings = ["Index"]+list(result[0].keys())
     values = [(lambda x: list(x.values()))(x) for x in result]
-    temp = "{:<15}"*len(headings)
+    temp = "{:<18}"*len(headings)
     print(temp.format(*headings))
     for count, i in enumerate(values):
         i = [count+1]+i
