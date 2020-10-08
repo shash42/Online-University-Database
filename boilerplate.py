@@ -10,11 +10,7 @@ class Session:
     def __init__(self):
         self.connection = pymysql.connect(host="localhost",
                               user="daa",
-<<<<<<< HEAD
                               password="",
-=======
-                              password="adrcrony69",
->>>>>>> 5b8592f46d5c8def685beb9c1647c61649fb6db1
                               db='UNIVERSITY',
                               charset='utf8mb4',
                               cursorclass=pymysql.cursors.DictCursor)
