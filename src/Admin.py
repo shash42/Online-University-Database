@@ -415,4 +415,5 @@ class Admin:
         cc.execute("SELECT * FROM FinalBOTTOM")
         resultbottom = cc.fetchall()
         univutil.table_format(resultbottom)
-
+        input()
+        return ""

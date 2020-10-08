@@ -29,6 +29,7 @@ class User:
         resultset = self.sesh.cursor.fetchall()
         for r in resultset:
             print(r)
+        input()
         return
  
     def showSgForCourse(self, courseid):
@@ -48,6 +49,7 @@ class User:
         result = self.sesh.cursor.fetchall()
         if(univutil.table_format(result) == 0):
             return 0
+        input()
         return result
 
     def manage_connections(self):
@@ -299,6 +301,7 @@ class User:
 
         else:
             print("Contribution updated succesfully!")
+            input()
 
         return
 
@@ -332,7 +335,7 @@ class User:
             query = "UPDATE MEMBER_OF SET UserSgRating = %d WHERE UserName = '%s' AND DNum = %d AND SgUrl = '%s'" % (rating, self.current_user[0], self.current_user[1], sg_url)
             self.sesh.cursor.execute(query)
             self.sesh.cursor.connection.commit()
-
+            input()
         except Exception as e:
             #print(e)
             univutil.ask_user_action(self.rate_sg)
@@ -386,6 +389,7 @@ class User:
 
             if(course_new_flag == 0 and lang_new_flag == 0):
                 print("You aren't inserting anything new!")
+                input()
                 return
 
             query = "INSERT INTO `PARTICIPATES_IN` VALUES ('%s', %d, '%s', '%s', %d)" % (self.current_user[0], self.current_user[1], sg_url, langcode, courseid)
@@ -395,7 +399,7 @@ class User:
                 print("Added a new course succesfully!")
             if(lang_new_flag):
                 print("Added a new language succesfully!")
-                    
+            input()
         except Exception as e:
             #print(e)
             univutil.ask_user_action(self.addoption_studygroup)
@@ -430,6 +434,7 @@ class User:
         
         else:
             print("Added Event Succesfully!")
+        input()
         return
 
     def create_target(self, sg_url, event_num):
@@ -445,6 +450,7 @@ class User:
             self.sesh.cursor.execute(query)
             self.sesh.connection.commit()
             print("Added Event Succesfully!")
+            input()
 
         except Exception as e:
             #print(e)
@@ -483,7 +489,7 @@ class User:
                 self.create_meet(sg_url, event_number)
             elif(selection=="2"):
                 self.create_target(sg_url, event_number)
-    
+        input()
         return
     
     def create_pin(self, sg_url):
@@ -502,7 +508,7 @@ class User:
         except Exception as e:
             #print(e)
             univutil.ask_user_action(self.create_pin)    
-    
+        input()
         return
 
     def change_sgstatus(self, sg_url):
@@ -571,7 +577,7 @@ class User:
                 tag_sql = "INSERT INTO BLOGTAG VALUES(%s, %s, %s, %s)"
                 self.sesh.cursor.execute(tag, self.current_user[0], self.current_user[1], post_number)
             self.sesh.connection.commit()
-
+            input()
         except Exception as e:
             #print(e)
             univutil.ask_user_action(self.make_post)
@@ -606,9 +612,9 @@ class User:
 
             sql = "DELETE FROM `POST` "
             sql += "WHERE UserName = '%s' AND DNum = '%s' AND PostNumber = '%s'" % (self.current_user[0], self.current_user[1], post_num)
-            print(sql)
             self.sesh.cursor.execute(sql)
             self.sesh.connection.commit()
+            input()
 
         except Exception as e:
             #print(e)
@@ -649,6 +655,7 @@ class User:
             update = "UPDATE `POST` SET `PostTitle` = %s, `PostContent` = %s WHERE `UserName` = %s AND `DNum` = '%s' AND `PostNumber` = '%s'"
             self.sesh.cursor.execute(update, (attrP["Post Title"], attrP["Post Content"], self.current_user[0], self.current_user[1], post_num))
             self.sesh.connection.commit()
+            input()
 
         except Exception as e:
             #print(e)
@@ -667,7 +674,6 @@ class User:
             self.sesh.see_available("COURSE")
         elif(choice == "2"):
             self.sesh.see_all("SUBJECT")
-            input()
             
     def view_user_posts(self):
         try:
@@ -702,7 +708,7 @@ class User:
             self.sesh.cursor.execute(query, (attributes["Friend2Name"],attributes["Friend2DNum"],self.current_user[0],self.current_user[1]))
             self.sesh.cursor.execute(query, (self.current_user[0],self.current_user[1], attributes["Friend2Name"],attributes["Friend2DNum"]))
             self.sesh.connection.commit()
-        
+
         except Exception as e:    
             #print(e)
             univutil.ask_user_action(self.befriend)

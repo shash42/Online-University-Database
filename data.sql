@@ -19,6 +19,10 @@
 -- Table structure for table `BLOGTAG`
 --
 
+DROP DATABASE IF EXISTS `UNIVERSITY1`;
+CREATE DATABASE UNIVERSITY1;
+USE UNIVERSITY1;
+
 DROP TABLE IF EXISTS `BLOGTAG`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;

@@ -11,7 +11,7 @@ class Session:
         self.connection = pymysql.connect(host="localhost",
                               user="temp",
                               password="",
-                              db='UNIVERSITY',
+                              db='UNIVERSITY1',
                               charset='utf8mb4',
                               cursorclass=pymysql.cursors.DictCursor)
         self.cursor = self.connection.cursor()
@@ -227,6 +227,7 @@ class Session:
 
                 self.admin.learning_analysis(courseid)
                 break
+        return ""
 
     def see_all(self, table):
         sql_query = f'SELECT * FROM {table};'
