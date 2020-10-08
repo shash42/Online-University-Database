@@ -71,14 +71,18 @@ class User:
         self.sesh.cursor.execute("CREATE VIEW `REQ_SG` AS (SELECT DISTINCT SgUrl FROM `PARTICIPATES_IN` WHERE CourseID = %s);", courseid); 
         self.sesh.cursor.execute("DROP VIEW IF EXISTS `POSS_SG`;")
         self.sesh.cursor.execute("CREATE VIEW `POSS_SG` AS (SELECT DISTINCT SgUrl FROM `REQ_SG` NATURAL JOIN `STUDY_GROUP` WHERE SgStatus = 'Active' OR SgStatus = 'Planned');")
-        sg_query = "SELECT SgUrl, AVG(UserSgRating), COUNT(EventNum), COUNT(DISTINCT (UserName, DNum)) \
-                    FROM  `POSS_SG` NATURAL JOIN `MEMBER_OF` NATURAL JOIN `SG_EVENT` \
-                    GROUP BY SgUrl \
-                    ORDER BY SgUpdated DESC;"
+        # sg_query = "SELECT SgUrl, AVG(UserSgRating), COUNT(EventNum), COUNT(DISTINCT (UserName, DNum)) \
+        #             FROM  `POSS_SG` NATURAL JOIN `MEMBER_OF` NATURAL JOIN `SG_EVENT` \
+        #             GROUP BY SgUrl \
+        #             ORDER BY SgUpdated DESC;"
+
+        sg_query = "SELECT MEMBER_OF.SgUrl, AVG(UserSgRating), COUNT(EventNum), COUNT(concat(UserName, DNum)) as Members \
+                    FROM `POSS_SG` NATURAL JOIN `MEMBER_OF` LEFT JOIN `SG_EVENT` ON `MEMBER_OF`.SgUrl = `SG_EVENT`.SgUrl \
+                    group by SgUrl;"
         self.sesh.cursor.execute(sg_query)
         result = self.sesh.cursor.fetchall()
-        table_format(result)
-        return
+        univutil.table_format(result)
+        return result
 
 
     def manage_studygroup(self):
@@ -192,32 +196,29 @@ class User:
         try:
             print("You can enroll in a new course (and a study group) or a new study group for a course already being taken.")
             result = self.sesh.see_all("COURSE")
-            courseid = input("CourseID: ")
-            while(courseid not in [(lambda x: result[x]["CourseID"])() for i in range(len(result))]):
-                courseid = input("CourseID: ")
-            courseid = int(courseid)
+            courseid = int(input("CourseID: "))
+            while(courseid not in [(lambda x: result[x]["CourseID"])(i) for i in range(len(result))]):
+                courseid = int(input("CourseID: "))
             coursequery = "INSERT IGNORE INTO `TAKES` (UserName, DNum, CourseID) VALUES (%s, %s, %s);" 
             self.sesh.cursor.execute(coursequery, (self.current_user[0], self.current_user[1], courseid)) # This ignores if entry in TAKES already exists^
             print("Available study groups for this course:")
-            #self.showSgForCourse(courseid)
+            values = self.showSgForCourse(courseid)
             new_sg = 'X'
             while(new_sg != 'N' and new_sg != 'E'):
                 new_sg = input("Do you want to create your own study group (N) or join an existing one [E]: ")
             if(new_sg == "E"):
-                print("TODO")
+                sg = input("Study Group URL: ")
+                while(sg not in [(lambda x: values[x]["SgUrl"])(i) for i in range(len(values))]):
+                    sg = input("Enter valid study group URL: ")
 
             if(new_sg == 'N'):
                 sg = input("Study Group URL: ")
                 sgcreate = "INSERT INTO STUDY_GROUP (`SgUrl`) VALUES (%s);"
                 self.sesh.cursor.execute(sgcreate, sg)
-                sgquery = "INSERT IGNORE INTO `MEMBER_OF` (UserName, DNum, SgUrl, UserSgRole) VALUES (%s, %s, %s, %s);"
-                self.sesh.cursor.execute(sgquery, (self.current_user[0], self.current_user[1], sg, "Admin"))
-                print("Created a new study group succesfully!")
+            sgquery = "INSERT IGNORE INTO `MEMBER_OF` (UserName, DNum, SgUrl, UserSgRole) VALUES (%s, %s, %s, %s);"
+            self.sesh.cursor.execute(sgquery, (self.current_user[0], self.current_user[1], sg, "Admin"))
+            print("Created a new study group succesfully!")
                 
-            else:
-                #[TODO:] else Validate that StudyGroup exists and put in while loop
-                sgquery = "INSERT IGNORE INTO `MEMBER_OF` VALUES (%s, %d, %s)" % (self.current_user[0], self.current_user[1], sg)
-                self.sesh.cursor.execute(sgquery)
             
             #[TODO:] We are not showing languages of each study group, and user might not want any of those list, but is stuck in while() here.
             print("Available languages for this study group")
@@ -564,6 +565,7 @@ class User:
             self.sesh.see_available("COURSE")
         elif(choice == "2"):
             self.sesh.see_all("SUBJECT")
+            input()
 
     def befriend(self):
         try:
