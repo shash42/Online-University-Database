@@ -41,7 +41,7 @@ class Admin:
             input()
 
         except Exception as e:
-            print(e)
+            #print(e)
             univutil.ask_user_action(self.add_user)
 
         return "Added user"
@@ -137,7 +137,7 @@ class Admin:
                 sql_query = f'SELECT CourseID, CourseName FROM `COURSE`;'
                 self.sesh.cursor.execute(sql_query)
                 result = self.sesh.cursor.fetchall()
-                table_format(result)
+                univutil.table_format(result)
                 choice = input("Select course index: ")
                 while(True):
                     try:
@@ -218,7 +218,6 @@ class Admin:
             #print(e)
             univutil.ask_user_action(self.add_language)
 
-    # [TODO:] CHECK THESE TWO LMAO
     def add_subjectInterest(self,username,dnum, values):
         SubName = ""
         choice = input("Pick subject index: ")
@@ -244,28 +243,28 @@ class Admin:
         #     self.add_subjectInterest(username, dnum)
 
     def add_languageKnown(self,username,dnum, values):
-        choice = input("Pick language index: ")
-        while(True):
-            try:
-                choice = int(choice)
-                LangCode = values[choice-1]['LangCode']
-                break
-            except:
-                print("Error. Invalid index")
-        Fluency = ""
-        while(Fluency == ""):
-            Fluency = input('Fluency["1. Elementary" ,"2. Limited Working" , "3. Professional Working" ,"4. Native"]: ')
-            if Fluency not in ["1", "2", "3", "4"]:
-                Fluency = ""
-            Fluency = ["Elementary" ,"Limited Working" , "Professional Working" ,"Native"][int(Fluency)-1]
-        query = "INSERT INTO `KNOWS` VALUES ('%s',%d,'%s','%s')" %(username,dnum,LangCode,Fluency)
-        print(query)
-        self.sesh.cursor.execute(query)
-            
-        # except Exception as e:
-        #     #print(e)
-        #     print("Try again")
-        #     self.add_languageKnown(username, dnum)
+        try:
+            choice = input("Pick language index: ")
+            while(True):
+                try:
+                    choice = int(choice)
+                    LangCode = values[choice-1]['LangCode']
+                    break
+                except:
+                    print("Error. Invalid index")
+            Fluency = ""
+            while(Fluency == ""):
+                Fluency = input('Fluency["1. Elementary" ,"2. Limited Working" , "3. Professional Working" ,"4. Native"]: ')
+                if Fluency not in ["1", "2", "3", "4"]:
+                    Fluency = ""
+                Fluency = ["Elementary" ,"Limited Working" , "Professional Working" ,"Native"][int(Fluency)-1]
+            query = "INSERT INTO `KNOWS` VALUES ('%s',%d,'%s','%s')" %(username,dnum,LangCode,Fluency)
+            print(query)
+            self.sesh.cursor.execute(query)        
+        except Exception as e:
+            #print(e)
+            print("Try again")
+            self.add_languageKnown(username, dnum)
 
         return
 
@@ -316,3 +315,101 @@ class Admin:
         if(univutil.table_format(result) == 0):
             print("Nothing found.")
         input()
+
+    def learning_analysis(self, courseid):
+        # define score as: (mean of course rating, performance)
+        # get top and bottom half of TAKES based on this score.
+        # print studygroup information for users in these halves, avg (no. of study groups), avg (no. of users), avg (no. of friends)
+        # print interactivity information for users in these halves, average(usersgrating) average(usersgcontrib)
+        print("Analysis of Study Group correlation with user satisfaction in course ", courseid)
+        self.sesh.cursor.execute("DROP VIEW IF EXISTS PERFORMANCE;")
+        self.sesh.cursor.execute("DROP VIEW IF EXISTS RATING;")
+        self.sesh.cursor.execute("DROP VIEW IF EXISTS SCORE;")
+        self.sesh.cursor.execute("DROP VIEW IF EXISTS SGUSERS;")
+        self.sesh.cursor.execute("DROP VIEW IF EXISTS SG;")
+        self.sesh.cursor.execute("DROP VIEW IF EXISTS UserSG;")
+        self.sesh.cursor.execute("DROP VIEW IF EXISTS FinUserSG;")
+        self.sesh.cursor.execute("DROP VIEW IF EXISTS UserTaken;")
+        self.sesh.cursor.execute("DROP VIEW IF EXISTS UFrenz;")
+        self.sesh.cursor.execute("DROP VIEW IF EXISTS USgFrenz;")
+        self.sesh.cursor.execute("DROP VIEW IF EXISTS Final;")
+        self.sesh.cursor.execute("DROP VIEW IF EXISTS TempTOP;")
+        self.sesh.cursor.execute("DROP VIEW IF EXISTS TempBOTTOM;")
+        self.sesh.cursor.execute("DROP VIEW IF EXISTS FinalTOP;")
+        self.sesh.cursor.execute("DROP VIEW IF EXISTS FinalBOTTOM;")
+
+        cc = self.sesh.cursor
+        perfq = "CREATE VIEW PERFORMANCE AS \
+                (SELECT UserName, DNum, UserPerformance, CourseID FROM TAKES WHERE CourseID = %s); "
+        rateq = "CREATE VIEW RATING AS \
+                (SELECT UserName, DNum, ReviewRating, CourseID FROM POST WHERE CourseID = %s AND ReviewRating IS NOT NULL);"
+        scoreq = "CREATE VIEW SCORE AS \
+                (SELECT UserName, DNum, (UserPerformance + ReviewRating)/2 as Points FROM RATING NATURAL JOIN PERFORMANCE WHERE CourseID = %s);" \
+        #scoreq1 = "SELECT * FROM SCORE;"
+        sguserq = "CREATE VIEW SGUSERS AS \
+                (SELECT SgUrl, Count(DISTINCT(CONCAT(UserName, DNum))) AS NumUsers FROM MEMBER_OF GROUP BY SgUrl);"
+        sgq = "CREATE VIEW SG AS \
+                (SELECT UserName, DNum, SgUrl, Points FROM SCORE NATURAL JOIN PARTICIPATES_IN WHERE CourseID = %s); "
+        USGq = "CREATE VIEW UserSG AS \
+                (SELECT UserName, DNum, SgUrl, Points, UserSgContrib, UserSgRating FROM SG NATURAL JOIN MEMBER_OF);"
+        FinUSGq = "CREATE VIEW FinUserSG AS \
+                (SELECT UserName, DNum, SgUrl, Points, NumUsers, UserSgContrib, UserSgRating FROM UserSG NATURAL JOIN SGUSERS);"
+        Uq =  "CREATE VIEW UserTaken AS \
+                (SELECT UserName, DNum FROM FinUserSG);"
+        UFrenq = "CREATE VIEW UFrenz AS \
+                (SELECT UserName, DNum, Friend2Name AS FrName, Friend2DNum AS FrDNum FROM UserTaken JOIN FRIENDS_WITH \
+                WHERE Friend1Name = UserName AND Friend1DNum = DNum);"
+        USgFrenq = "CREATE VIEW USgFrenz AS \
+                (SELECT UserName, DNum, SgUrl, Points, NumUsers, UserSgContrib, UserSgRating, COUNT(DISTINCT(CONCAT(FrName, FrDNum))) AS NumFrenz \
+                FROM UFrenz NATURAL JOIN FinUserSG \
+                GROUP BY UserName, DNum, SgUrl);"
+        Finalq = "CREATE VIEW Final AS \
+                (SELECT UserName, DNum, AVG(SgUrl) AS AvgGroups, Points, AVG(UserSgContrib) AS AvgContrib, AVG(UserSgRating) AS AvgSgRating, Avg(NumFrenz) AS AvgFrenz \
+                FROM USgFrenz GROUP BY UserName, DNum);"
+
+        cc.execute(perfq, courseid)
+        cc.execute(rateq, courseid)
+        cc.execute(scoreq, courseid)
+        cc.execute(sguserq)
+        cc.execute(sgq, courseid)
+        cc.execute(USGq)
+        cc.execute(FinUSGq)
+        cc.execute(Uq)
+        cc.execute(UFrenq)
+        cc.execute(USgFrenq)
+        cc.execute(Finalq)
+        result = cc.fetchall()
+        print("Overall Analysis Table:")
+        univutil.table_format(result)
+        
+        num_users = cc.rowcount
+        num_top = int(num_users/2)
+        num_bottom = num_users - num_top
+
+        print("Top Half Stats")
+        toptempq = "CREATE VIEW TempTOP AS \
+                    (SELECT * FROM Final ORDER BY Points DESC LIMIT %s);"
+
+        topq = "CREATE VIEW FinalTOP AS \
+                (SELECT UserName, DNum, AVG(AvgGroups) AS AvgGroupsT, AVG(Points) AS AvgPointsT, \
+                AVG(AvgContrib) AS AvgContribT, AVG(AvgSgRating) AS AvgRatingT, AVG(AvgFrenz) AS AvgFrenzT \
+                FROM Final GROUP BY UserName, DNum);"
+
+        cc.execute(toptempq, num_top)
+        cc.execute(topq)
+        resulttop = cc.fetchall()
+        univutil.table_format(resulttop)
+        
+        print("Bottom Half Stats")
+        bottomtempq = "CREATE VIEW TempBOTTOM AS \
+                    (SELECT * FROM Final ORDER BY Points LIMIT %s);"
+        bottomq = "CREATE VIEW FinalBOTTOM AS \
+                (SELECT UserName, DNum, AVG(AvgGroups) AS AvgGroupsB, AVG(Points) AS AvgPointsB, \
+                AVG(AvgContrib) AS AvgContribB, AVG(AvgSgRating) AS AvgRatingB, AVG(AvgFrenz) AS AvgFrenzB \
+                FROM Final GROUP BY UserName, DNum);"
+
+        cc.execute(bottomtempq, num_bottom)
+        cc.execute(bottomq)
+        resultbottom = cc.fetchall()
+        univutil.table_format(resultbottom)
+

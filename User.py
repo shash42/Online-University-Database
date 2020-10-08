@@ -50,49 +50,6 @@ class User:
             return 0
         return result
 
-
-    def manage_studygroup(self):
-        query = "SELECT SgUrl FROM `PARTICIPATES_IN` WHERE UserName = %s and DNum = %s"
-        self.sesh.cursor.execute(query, (self.current_user[0],self.current_user[1]))
-        result = self.sesh.cursor.fetchall()
-        univutil.table_format(result)
-        sg_url = input("Enter URL of Study Group: ")
-        if not(sg_url in [(lambda x : result[x]["SgUrl"])(i) for i in range(len(result))]):
-            print("Invalid URL")
-            input()
-            return
-        self.sesh.cursor.execute("SELECT UserSgRole FROM `MEMBER_OF` WHERE SgUrl = %s AND UserName = %s AND DNum = %s;",(sg_url, self.current_user[0], self.current_user[1]))
-        result = self.sesh.cursor.fetchone()
-        sg_role = result["UserSgRole"]
-        if(sg_role == "Member"):
-            return
-        while(True):
-            selection = 0
-            print("1. Add pinned information")
-            print("2. Add an event")
-            print("3. Add options (course/languages)")
-            print("5. Change status")
-            print("6. Manage User")
-            print("7. Exit")
-            selection = input("Choose one of the above options: ")
-            if(selection == "1"):
-                self.create_pin(sg_url)
-            elif(selection == "2"):
-                self.create_event(sg_url)
-            elif(selection == "3"):
-                self.addoption_studygroup(sg_url)
-            elif(selection == "5"):
-                self.change_sgstatus(sg_url)
-            elif(selection == "6"):
-                print("Not implemented") #[TODO:]
-            elif(selection == "7"):
-                return
-            else:
-                print()
-                return "Invalid choice. Please try again!"
-
-        return
-
     def manage_connections(self):
         while(True):
             os.system("clear")
@@ -202,7 +159,7 @@ class User:
             print("4. Change status")
             print("5. Update User Contribution")
             print("6. Exit")
-            selection = print("Choose one of the above options: ")
+            selection = input("Choose one of the above options: ")
             if(selection == "1"):
                 self.create_pin(sg_url)
             elif(selection == "2"):
@@ -232,7 +189,13 @@ class User:
             new_sg = 'X'
             if(values == 0):
                 print("No study groups for this course.")
-                new_sg = "N"
+                while(True):
+                    new_sg = input("Create new study group? [Y/N]")
+                    if(new_sg == "N"):
+                        return
+                    elif(new_sg == "Y"):
+                        new_sg = "N"
+                        break
             while(new_sg != 'N' and new_sg != 'E'):
                 new_sg = input("Do you want to create your own study group (N) or join an existing one [E]: ")
             if(new_sg == "E"):
@@ -254,7 +217,6 @@ class User:
             self.sesh.cursor.execute(sgquery, (self.current_user[0], self.current_user[1], sg, "Admin"))
             print("Created a new study group succesfully!")
                 
-            #[TODO:] We are not showing languages of each study group, and user might not want any of those list, but is stuck in while() here.
             print("Available languages for this study group")
             langquery = "SELECT DISTINCT LangCode FROM PARTICIPATES_IN WHERE SgUrl = '%s'" % (sg)
             self.sesh.cursor.execute(langquery)
@@ -272,7 +234,11 @@ class User:
                     except:
                         print("Error. Invalid index")
             while(lfound==0):
-                langcode = input("Language to participate in study_group (langcode): ")
+                langcode = input("Language to participate in study_group (langcode) [N for none]: ")
+                if(langcode == "N"):
+                    print("Let's find a new study group.")
+                    input()
+                    return
                 for i in range(self.sesh.cursor.rowcount):
                     if(result[i]["LangCode"]==langcode):
                         lfound=1
@@ -281,7 +247,7 @@ class User:
             self.sesh.cursor.execute(query, (self.current_user[0], self.current_user[1], sg, langcode, courseid))
             self.sesh.connection.commit()
             print("Enrolled in Course: %d as a member of Study Group: %s in language: %s succesfully!" % (courseid, sg, langcode))
-
+            input()
         except Exception as e:
             #print(e)
             univutil.ask_user_action(self.enroll)
@@ -292,11 +258,13 @@ class User:
         try:
             os.system("clear")
             print("User List: ")
-            userquery = "SELECT UserName, DNum FROM MEMBER_OF WHERE SgUrl = '%s'" % (sg_url)
+            userquery = "SELECT UserName, DNum, UserSgRole FROM MEMBER_OF WHERE SgUrl = '%s'" % (sg_url)
             self.sesh.cursor.execute(userquery)
             result = self.sesh.cursor.fetchall()
             table_format(result)
             
+            roles = ["Member", "Admin"]
+            roleidx = 0
             flag = 0
             while(flag==0):
                 username = input("Enter username: ")
@@ -304,6 +272,8 @@ class User:
                 for r in result:
                     if(r["UserName"] == username and r["DNum"] == dnum):
                         flag = 1
+                        if(r["UserSgRole"] == "Admin"):
+                            roleidx = 1
                 if(flag==0):
                     print("No such user in study group, try again!")
 
@@ -312,11 +282,19 @@ class User:
                 contrib = int(input("Contribution rating of user [1-10]: "))
             contribquery = "UPDATE MEMBER_OF SET UserSgContrib = %s WHERE SgUrl = '%s' AND UserName = '%s' AND DNum = %s;" 
             self.sesh.cursor.execute(contribquery, (contrib, sg_url, self.current_user[0], self.current_user[1]))
+
+            selection = 'X'
+            while(selection != 'Y' and selection != 'N'):
+                selection = input("Flip user role from %s to %s [Y/N]: " % (roles[roleidx], roles[1-roleidx]))
+            if(selection == 'Y'):
+                rolequery = "UPDATE MEMBER_OF SET UserSgRole = %s WHERE SgUrl = '%s' AND UserName = '%s' AND DNum = %s;"
+                self.sesh.cursor.execute(rolequery, (roles[1-roleidx], sg_url, self.current_user[0], self.current_user[1]))
+            
             self.sesh.cursor.connection.commit()
-        
+
         except Exception as e:
-            #print(e)
-            univutil.ask_user_action(self.update_usercontrib)
+            print(e)
+            ask_user_action(self.update_usercontrib)
 
         else:
             print("Contribution updated succesfully!")
@@ -404,7 +382,7 @@ class User:
                     
         except Exception as e:
             #print(e)
-            self.sesh.ask_user_action(self.addoption_studygroup)
+            univutil.sesh.ask_user_action(self.addoption_studygroup)
 
         else: # Also add User - Course to User TAKES Course
             try:
@@ -412,8 +390,9 @@ class User:
                 self.sesh.cursor.execute(coursequery)
                 self.sesh.cursor.commit()
             except Exception as e:
+                pass
                 #print(e) #[TODO:] After testing comment this and pass because error might be that it already exists
-                univutil.ask_user_action(self.addoption_studygroup)
+                #univutil.ask_user_action(self.addoption_studygroup)
 
     def create_meet(self, sg_url, event_num):
         try:
@@ -431,7 +410,7 @@ class User:
 
         except Exception as e:
             #print(e)
-            self.sesh.ask_user_action(self.create_meet)
+            univutil.ask_user_action(self.create_meet)
         
         else:
             print("Added Event Succesfully!")
@@ -453,14 +432,16 @@ class User:
 
         except Exception as e:
             #print(e)
-            self.sesh.ask_user_action(self.create_target)
+            univutil.ask_user_action(self.create_target)
         
         return
     
     def create_event(self, sg_url):
         try:
+            query = "SELECT COUNT(*) FROM `SG_EVENT` WHERE SgUrl = %s"
+            self.sesh.cursor.execute(query, sg_url)
+            event_number = self.sesh.cursor.fetchone()["COUNT(*)"]
             attrE = {
-                "Event Number" : "", # [TODO:] This has to be computed using SgUrl
                 "Event Title" : "",
                 "Event Info." : ""
             }
@@ -468,12 +449,12 @@ class User:
                     while(attrE[attribute]==""):
                         attrE[attribute] = input(attribute+": ")
             
-            query = "INSERT INTO `SG_EVENT` (SgUrl, EventNum, EventTitle, EventInfo) VALUES ('%s' '%s' '%s' '%s')" % (sg_url, attrE["Event Number"], attrE["Event Title"], attrE["Event Info."])
-            self.sesh.cursor.execute(query)
+            query = "INSERT INTO `SG_EVENT` (SgUrl, EventNum, EventTitle, EventInfo) VALUES (%s, %s, %s, %s);"
+            self.sesh.cursor.execute(query, (sg_url, event_number, attrE["Event Title"], attrE["Event Info."]))
             self.sesh.connection.commit()
 
         except Exception as e:
-            #print(e)
+            print(e)
             univutil.ask_user_action(self.create_event)
 
         else:
@@ -510,33 +491,34 @@ class User:
 
     def change_sgstatus(self, sg_url):
         try:
-            query = "SELECT 'SgStatus' from `STUDY_GROUP` WHERE 'SgUrl' = %s" % (sg_url)
-            self.sesh.cursor.execute(query)
+            query = "SELECT SgStatus from `STUDY_GROUP` WHERE SgUrl = %s"
+            self.sesh.cursor.execute(query, sg_url)
             result = self.sesh.cursor.fetchone()
-            status = result[0]
-            print("Current Status is: %s", status)
+            print(result)
+            status = result['SgStatus']
+            print("Current Status is: ", status)
             while(True):
                 status = input("Enter Status [Completed/Active/Planned]: ")
                 if(status == "Completed" or status == "Active" or status == "Planned"):
                     break
                 else:
                     print("Invalid input. Try again!")
-            update = "UPDATE `STUDY_GROUP` SET `SgStatus` = %s WHERE `SgUrl` = %s" % (status, sg_url)
-            self.sesh.cursor.execute(update)
+            update = "UPDATE `STUDY_GROUP` SET SgStatus = %s WHERE SgUrl = %s" 
+            self.sesh.cursor.execute(update, (status, sg_url))
             self.sesh.connection.commit()
         
         except Exception as e:
-            #print(e)
+            print(e)
             univutil.ask_user_action(self.change_sgstatus)
         else:
             print("Status updated successfully!")
-
+            input()
         return
 
 
     def make_post(self):
         try:
-            query = "SELECT COUNT(*) FROM `POST` WHERE UserName=%s AND DNum = %s"
+            query = "SELECT COUNT(*) FROM `POST` WHERE UserName = %s AND DNum = %s"
             self.sesh.cursor.execute(query, (self.current_user[0], self.current_user[1]))
             post_number = self.sesh.cursor.fetchone()["COUNT(*)"]
 
