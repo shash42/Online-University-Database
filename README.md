@@ -59,6 +59,10 @@ But more importantly, you can create analysis reports using the rich variety of 
 
 <h2> Repository Structure </h2>
 
+The folder src contains 4 .py files, main.py, User.py, Admin.py and univutil.py. User.py contains the User class, which has functions for the User view. Similarly, Admin has the Admin class with functions for Admin view. main.py is the caller function that combines these together and prints the initial menus. univutil.py just contains some utility functions needed by multiple files. <br>
+
+The folder References contains the work of the older phases for reference. This shows the progress of the project over time. CHANGELOG.md describes the changes from Phase 3 to 4 (current). definition.sql contains the definition of the UNIVERSITY schema and dummydata.sql contains some basic test data for exemplifying the working of our database system. <br>
+
 <h2> Compliance Report </h2>
 
 We have implemented a super-set of the functional requirements described in our Phase 1 document. We had to make some changes, which are mentioned in CHANGELOG.md
