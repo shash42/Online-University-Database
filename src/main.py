@@ -208,7 +208,7 @@ class Session:
         while(True):
             os.system("clear")
             print("1. Meaningful Connections")
-            print("2. Leaning Analysis")
+            print("2. Learning Analysis")
             print("3. Back")
             choice = input()
             if(choice == "1"):
